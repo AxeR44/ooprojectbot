@@ -276,44 +276,54 @@ public class CommandsImpl implements Commands {
             //exception
             event.getChannel().sendMessage("Numero di parametri invalidi").queue();
         } else {
-            event.getChannel().sendMessage(event.getMessage().getContentRaw()).complete();
+            //event.getChannel().sendMessage(event.getMessage().getContentRaw()).complete();
+            final String userID = msg[1].substring(3, msg[1].length() - 1);
             System.out.println(event.getMessage().getContentRaw());
-            String userID = msg[1].substring(3, msg[1].length() - 1);
-            Member m = event.getGuild().getMemberById(userID);
-            if (userID.equals(event.getGuild().getOwnerId())) {
-                event.getChannel().sendMessage("Can't kick owner").queue();
-            } else {
-                System.out.println(userID);
-                final String effectiveUserName = event.getGuild().getMemberById(userID).getEffectiveName();
-                String msgID = event.getChannel().sendMessage("Voting to kick @" + effectiveUserName + ": 30 sec. remaining").complete().getId();
-                Message message = event.getChannel().retrieveMessageById(msgID).complete();
-                final long countdownStart = System.currentTimeMillis();
-                message.addReaction("\u2705").complete();
-                message.addReaction("\u274C").complete();
-                final Timer t = new Timer();
-                t.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
-                            Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
-                            event.getChannel().deleteMessageById(msgID).queue();
-                            if (cnt[0] > quorum) {
-                                event.getChannel().sendMessage("@" + effectiveUserName + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
-                            } else {
-                                event.getChannel().sendMessage("@" + effectiveUserName + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+            if (msg[1].startsWith("<@!") && msg[1].endsWith(">")) {
+                if (userID.equals(event.getGuild().getOwnerId())) {
+                    event.getChannel().sendMessage("Can't kick owner").queue();
+                }else if(userID.equals(event.getGuild().getSelfMember().getId())){
+                    event.getChannel().sendMessage("Can't kick SaaSBot").queue();
+                }else if(userID.equals(event.getMessage().getAuthor().getId())){
+                    event.getChannel().sendMessage(msg[1] + " Why would you like to kick yourself out of this server?\nPRO TIP: right click on server icon->Leave Server").queue();
+                }else {
+                    if (event.getGuild().getMemberById(userID) != null) {
+                        System.out.println(userID);
+                        String msgID = event.getChannel().sendMessage("@everyone\nVoting to kick" + msg[1] + ": 30 sec. remaining").complete().getId();
+                        Message message = event.getChannel().retrieveMessageById(msgID).complete();
+                        final long countdownStart = System.currentTimeMillis();
+                        message.addReaction("\u2705").complete();
+                        message.addReaction("\u274C").complete();
+                        final Timer t = new Timer();
+                        t.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
+                                    Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    event.getChannel().deleteMessageById(msgID).queue();
+                                    if (cnt[0] > quorum) {
+                                        event.getChannel().sendMessage(msg[1] + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                    } else {
+                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                    }
+                                    t.cancel();
+                                } else {
+                                    message.editMessage("@everyone\nVoting to kick " + msg[1] + ": " + (30 - ((System.currentTimeMillis() - countdownStart) / 1000) + "sec remaining")).complete();
+                                }
                             }
-                            t.cancel();
-                        } else {
-                            message.editMessage("Voting to kick @" + effectiveUserName + ": " + (30 - ((System.currentTimeMillis() - countdownStart) / 1000) + "sec remaining")).complete();
-                        }
+                        }, 0, 1000);
+
+
+                        /*Member m = event.getGuild().getMemberById(userID);
+                        System.out.println(m);*/
+                        //event.getGuild().kick(userID).complete();
+                        /*System.out.println("kicked " + name);*/
+                    }else{
+                        event.getChannel().sendMessage(msg[1] + " is not a valid username or the user is not in this server").queue();
                     }
-                }, 0, 1000);
-
-
-                /*Member m = event.getGuild().getMemberById(userID);
-                System.out.println(m);*/
-                //event.getGuild().kick(userID).complete();
-                /*System.out.println("kicked " + name);*/
+                }
+            }else{
+                event.getChannel().sendMessage(msg[1] + " is not a valid username").queue();
             }
         }
     }

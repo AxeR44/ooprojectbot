@@ -21,11 +21,6 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         String[] args = event.getMessage().getContentRaw().split(" ");
-        Guild g = event.getChannel().getGuild();
-        System.out.println(g.getMembers());
-        for(Member m : event.getChannel().getGuild().getMembers()){
-            System.out.println(m.getEffectiveName()+ "\t" + m.getId());
-        }
         if (!event.getAuthor().isBot()) {
             if (args[0].startsWith(prefix)) {
                 String rawCommand = args[0].substring(1);
