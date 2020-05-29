@@ -35,6 +35,8 @@ Right now the bot can handle the following commands:
 * [ ] Votekick user from server (staging)
 * [ ] Searching songs without link (.play <songName>)
 * [ ] Generating dynamic discord invite links
+* [ ] Creating simple surveys(yes/no)
+* [ ] Creating custom surveys with custom answers (using emotes)
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
