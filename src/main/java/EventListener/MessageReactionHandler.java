@@ -22,7 +22,7 @@ public class MessageReactionHandler extends ListenerAdapter {
     public void onMessageReactionAdd(MessageReactionAddEvent event){
         String id = event.getMessageId();
         Message msg = event.getChannel().retrieveMessageById(id).complete();
-        if(msg.getContentRaw().startsWith("Voting")){
+        if(msg.getContentRaw().startsWith("@everyone\nVoting") && msg.getAuthor().getId().equals(event.getGuild().getSelfMember().getId())){
             addReactionToMap(id, event);
         }
     }
@@ -31,7 +31,7 @@ public class MessageReactionHandler extends ListenerAdapter {
     public void onMessageReactionRemove(MessageReactionRemoveEvent event){
         String id = event.getMessageId();
         Message msg = event.getChannel().retrieveMessageById(id).complete();
-        if(msg.getContentRaw().startsWith("Voting")){
+        if(msg.getContentRaw().startsWith("@everyone\nVoting") && msg.getAuthor().getId().equals(event.getGuild().getSelfMember().getId())){
             removeReactionFromMap(id, event);
         }
     }
