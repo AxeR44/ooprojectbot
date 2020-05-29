@@ -4,20 +4,21 @@ import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
 import Notifier.telegramNotifier;
 import PlayerUtils.Player;
+import EventListener.MessageReactionHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.hooks.IEventManager;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 
 import java.awt.*;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class CommandsImpl implements Commands {
 
@@ -26,7 +27,6 @@ public class CommandsImpl implements Commands {
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
-
 
 
     public CommandsImpl(@Nullable String token) {
@@ -164,27 +164,26 @@ public class CommandsImpl implements Commands {
             event.getChannel().sendMessage(builder.toString()).queue();
         }
     }
+
     @Override
-    public void translator(GuildMessageReceivedEvent event, String[] args){
-        try{
+    public void translator(GuildMessageReceivedEvent event, String[] args) {
+        try {
             String result = new Translator().translate(args);
             JSONObject jobj = new JSONObject(result);
             EmbedBuilder traduzione = new EmbedBuilder();
             //traduzione.setDescription("Testo tradotto: " + jobj.getString("translatedText"));
-            traduzione.addField("Traduzione:",jobj.getString("translatedText"),false);
+            traduzione.addField("Traduzione:", jobj.getString("translatedText"), false);
             traduzione.setColor(Color.blue);
 
             event.getChannel().sendTyping().queue();
             event.getChannel().sendMessage(traduzione.build()).queue();
             traduzione.clear();
-        }
-        catch(Exception e){
-            if(e instanceof JSONException){
+        } catch (Exception e) {
+            if (e instanceof JSONException) {
                 event.getChannel().sendMessage("Errore nell'elaborazione").queue();
-            }
-            else if(e instanceof IllegalArgumentException){
+            } else if (e instanceof IllegalArgumentException) {
                 event.getChannel().sendMessage("Uno dei parametri non è valido").queue();
-            }else{
+            } else {
                 event.getChannel().sendMessage(e.getMessage()).queue();
             }
         }
@@ -192,18 +191,18 @@ public class CommandsImpl implements Commands {
 
 
     @Override
-    public void quiz(GuildMessageReceivedEvent event){
+    public void quiz(GuildMessageReceivedEvent event) {
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
-        for(Role r : roles){
-            if(r.getName().equals("Undertale")){
+        for (Role r : roles) {
+            if (r.getName().equals("Undertale")) {
                 isAuthorized = true;
             }
         }
-        if(roles.isEmpty() || !isAuthorized){
+        if (roles.isEmpty() || !isAuthorized) {
             event.getChannel().sendMessage("Non hai giocato Undertale. Non puoi usare il comando").queue();
-        }else {
+        } else {
             this.play(event, "https://www.youtube.com/watch?v=P0PpyUsvT9w", true);
             try {
                 InputStream iStream = this.getClass().getClassLoader().getResourceAsStream("Mettaton.gif");
@@ -221,10 +220,10 @@ public class CommandsImpl implements Commands {
                     boolean error = false;
                     String innerID = msgID;
                     while (tmp.length() < 106 && (!error)) { //checking for string char length or error while executing
-                        try{
+                        try {
                             Message m = event.getChannel().retrieveMessageById(innerID).complete();
                             m.editMessage(tmp).complete();
-                        }catch(ErrorResponseException e){
+                        } catch (ErrorResponseException e) {
                             /*System.out.println("Message was deleted. Resending..");
                             innerID = event.getChannel().sendMessage(tmp).complete().getId();*/
                             //OR
@@ -233,7 +232,7 @@ public class CommandsImpl implements Commands {
                         //event.getChannel().editMessageById(msgID, tmp).complete();
                         tmp += "n";
                     }
-                    if(error){
+                    if (error) {
                         System.out.println("Message deleted, aborting Mettaton");
                         play(event, null, false);
                     }
@@ -243,9 +242,8 @@ public class CommandsImpl implements Commands {
         }
     }
 
-
     @Override
-    public void rJokes(GuildMessageReceivedEvent event){
+    public void rJokes(GuildMessageReceivedEvent event) {
         String extractedJoke = jokesGenerator.jokes();
         EmbedBuilder randJoke = new EmbedBuilder();
         randJoke.setDescription(extractedJoke);
@@ -255,8 +253,9 @@ public class CommandsImpl implements Commands {
         event.getChannel().sendMessage(randJoke.build()).queue();
         randJoke.clear();
     }
+
     @Override
-    public void languagePrinter(GuildMessageReceivedEvent event){
+    public void languagePrinter(GuildMessageReceivedEvent event) {
         String lanList = langPrinter.printLanguages();
         EmbedBuilder langl = new EmbedBuilder();
         langl.setTitle("Lingue supportate");
@@ -271,21 +270,46 @@ public class CommandsImpl implements Commands {
     @Override
     public void voteKick(GuildMessageReceivedEvent event) {
         final int memberCount = event.getGuild().getMemberCount();
-        final int quorum = (memberCount / 2) + 1;
+        final int quorum = memberCount / 2;
         String[] msg = event.getMessage().getContentRaw().split(" ");
-        if(msg.length != 2){
+        if (msg.length != 2) {
             //exception
             event.getChannel().sendMessage("Numero di parametri invalidi").queue();
-        }else{
-
+        } else {
             event.getChannel().sendMessage(event.getMessage().getContentRaw()).complete();
             System.out.println(event.getMessage().getContentRaw());
             String userID = msg[1].substring(3, msg[1].length() - 1);
             Member m = event.getGuild().getMemberById(userID);
-            if(userID.equals(event.getGuild().getOwnerId())){
+            if (userID.equals(event.getGuild().getOwnerId())) {
                 event.getChannel().sendMessage("Can't kick owner").queue();
-            }else{
+            } else {
                 System.out.println(userID);
+                final String effectiveUserName = event.getGuild().getMemberById(userID).getEffectiveName();
+                String msgID = event.getChannel().sendMessage("Voting to kick @" + effectiveUserName + ": 30 sec. remaining").complete().getId();
+                Message message = event.getChannel().retrieveMessageById(msgID).complete();
+                final long countdownStart = System.currentTimeMillis();
+                message.addReaction("\u2705").complete();
+                message.addReaction("\u274C").complete();
+                final Timer t = new Timer();
+                t.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
+                            Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
+                            event.getChannel().deleteMessageById(msgID).queue();
+                            if (cnt[0] > quorum) {
+                                event.getChannel().sendMessage("@" + effectiveUserName + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                            } else {
+                                event.getChannel().sendMessage("@" + effectiveUserName + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                            }
+                            t.cancel();
+                        } else {
+                            message.editMessage("Voting to kick @" + effectiveUserName + ": " + (30 - ((System.currentTimeMillis() - countdownStart) / 1000) + "sec remaining")).complete();
+                        }
+                    }
+                }, 0, 1000);
+
+
                 /*Member m = event.getGuild().getMemberById(userID);
                 System.out.println(m);*/
                 //event.getGuild().kick(userID).complete();
