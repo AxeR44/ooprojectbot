@@ -1,0 +1,20 @@
+package Commands;
+
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+
+public interface Commands {
+    void help(GuildMessageReceivedEvent event);
+    void ping(GuildMessageReceivedEvent event);
+    void invite(GuildMessageReceivedEvent event);
+    void sendInfo(GuildMessageReceivedEvent event);
+    boolean sendTelegram(String[] args, GuildMessageReceivedEvent event) throws Exception;
+    void listChannels(GuildMessageReceivedEvent event);
+    void play(GuildMessageReceivedEvent event, String Url, boolean hideNotification) throws NullPointerException;
+    void skip(GuildMessageReceivedEvent event);
+    void dequeue(String index, GuildMessageReceivedEvent event);
+    void queue(GuildMessageReceivedEvent event);
+    void translator(GuildMessageReceivedEvent event, String[] args);
+    void quiz(GuildMessageReceivedEvent event);
+    void rJokes(GuildMessageReceivedEvent event);
+    void languagePrinter(GuildMessageReceivedEvent event);
+}
