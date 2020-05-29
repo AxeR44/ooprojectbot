@@ -267,4 +267,30 @@ public class CommandsImpl implements Commands {
         event.getChannel().sendMessage(langl.build()).queue();
 
     }
+
+    @Override
+    public void voteKick(GuildMessageReceivedEvent event) {
+        final int memberCount = event.getGuild().getMemberCount();
+        final int quorum = (memberCount / 2) + 1;
+        String[] msg = event.getMessage().getContentRaw().split(" ");
+        if(msg.length != 2){
+            //exception
+            event.getChannel().sendMessage("Numero di parametri invalidi").queue();
+        }else{
+
+            event.getChannel().sendMessage(event.getMessage().getContentRaw()).complete();
+            System.out.println(event.getMessage().getContentRaw());
+            String userID = msg[1].substring(3, msg[1].length() - 1);
+            Member m = event.getGuild().getMemberById(userID);
+            if(userID.equals(event.getGuild().getOwnerId())){
+                event.getChannel().sendMessage("Can't kick owner").queue();
+            }else{
+                System.out.println(userID);
+                /*Member m = event.getGuild().getMemberById(userID);
+                System.out.println(m);*/
+                //event.getGuild().kick(userID).complete();
+                /*System.out.println("kicked " + name);*/
+            }
+        }
+    }
 }

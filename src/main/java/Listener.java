@@ -92,6 +92,9 @@ public class Listener extends ListenerAdapter {
                     case "langlist":
                         commands.languagePrinter(event);
                         break;
+                    case "votekick":
+                        commands.voteKick(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

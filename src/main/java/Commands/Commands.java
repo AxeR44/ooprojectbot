@@ -17,4 +17,5 @@ public interface Commands {
     void quiz(GuildMessageReceivedEvent event);
     void rJokes(GuildMessageReceivedEvent event);
     void languagePrinter(GuildMessageReceivedEvent event);
+    void voteKick(GuildMessageReceivedEvent event);
 }
