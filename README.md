@@ -35,9 +35,8 @@ Right now the bot can handle the following commands:
 * [ ] Votekick user from server (staging)
 * [ ] Searching songs without link (.play <songName>)
 * [ ] Generating dynamic discord invite links
+* [ ] Allowing every guild owner to add more telegram groups
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
 * **Alessandro Soraci** - [Sandrone99](https://github.com/Sandrone99)
-
-
