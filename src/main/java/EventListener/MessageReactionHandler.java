@@ -44,10 +44,10 @@ public class MessageReactionHandler extends ListenerAdapter {
             if(!wrp.isVoteDuplicate(uID)){
                 wrapperModify(wrp, 1, emoteName);
                 wrp.setVoted(event.getMember().getId(),false);
-                reactionsCount.replace(msgID, wrp);
             }else{
                 wrp.setVoteDuplicate(uID, false);
             }
+            reactionsCount.replace(msgID, wrp);
         }
     }
 
