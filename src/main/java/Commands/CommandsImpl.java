@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.hooks.IEventManager;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
@@ -229,7 +228,6 @@ public class CommandsImpl implements Commands {
                             //OR
                             error = true;
                         }
-                        //event.getChannel().editMessageById(msgID, tmp).complete();
                         tmp += "n";
                     }
                     if (error) {

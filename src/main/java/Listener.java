@@ -1,11 +1,7 @@
 import Commands.CommandsImpl;
 import Eventi.HiBotEvent;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-
 
 public class Listener extends ListenerAdapter {
 
