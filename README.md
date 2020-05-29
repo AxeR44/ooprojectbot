@@ -17,6 +17,7 @@ Right now the bot can handle the following commands:
 .leave: disconnects from a voice channel
 .translate <text> -- <sourceLanguage> <targetLanguage>: Translates <text> from <sourceLanguage> to <targetLanguage>
 .langlist: lists all the languages supported by the .translate command
+.votekick @<username>: kicks a user from the server
 ```
 
 ## TO-DO LIST
