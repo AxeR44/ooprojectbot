@@ -17,7 +17,6 @@ import java.awt.*;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CommandsImpl implements Commands {
 
@@ -75,13 +74,16 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void invite(GuildMessageReceivedEvent event) {
-        EmbedBuilder Invite = new EmbedBuilder();
-        Invite.setTitle("Link invito al server");
-        Invite.setDescription("Invita i tuoi amici a joinare insieme a noi qui! Link:\n https://discord.gg/UUDPvMt");
-        Invite.setColor(Color.blue);
-        event.getChannel().sendTyping().queue();
-        event.getChannel().sendMessage(Invite.build()).queue();
-        Invite.clear();
+        User u = event.getMessage().getAuthor();
+        Invite i = event.getGuild().getDefaultChannel().createInvite().setMaxUses(1).setUnique(true).complete();
+        u.openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
+                    .queue(message -> {
+                            event.getMessage().addReaction("\u2705").queue();
+                        }, error ->{
+                            event.getMessage().addReaction("\u274C").queue();
+                    });
+        });
     }
 
     @Override
@@ -173,7 +175,6 @@ public class CommandsImpl implements Commands {
             //traduzione.setDescription("Testo tradotto: " + jobj.getString("translatedText"));
             traduzione.addField("Traduzione:",jobj.getString("translatedText"),false);
             traduzione.setColor(Color.blue);
-
             event.getChannel().sendTyping().queue();
             event.getChannel().sendMessage(traduzione.build()).queue();
             traduzione.clear();
