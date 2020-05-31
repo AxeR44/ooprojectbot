@@ -300,7 +300,9 @@ public class CommandsImpl implements Commands {
                                     Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
                                     event.getChannel().deleteMessageById(msgID).queue();
                                     if (cnt[0] > quorum) {
-                                        event.getChannel().sendMessage(msg[1] + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                        event.getGuild().kick(userID).queue(success->{
+                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                        });
                                     } else {
                                         event.getChannel().sendMessage(msg[1] + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
                                     }
@@ -310,12 +312,6 @@ public class CommandsImpl implements Commands {
                                 }
                             }
                         }, 0, 1000);
-
-
-                        /*Member m = event.getGuild().getMemberById(userID);
-                        System.out.println(m);*/
-                        //event.getGuild().kick(userID).complete();
-                        /*System.out.println("kicked " + name);*/
                     }else{
                         event.getChannel().sendMessage(msg[1] + " is not a valid username or the user is not in this server").queue();
                     }
