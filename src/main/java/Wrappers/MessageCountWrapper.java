@@ -18,21 +18,21 @@ public class MessageCountWrapper {
         }
     }
 
-    public boolean hasUserAlreadyVoted(String uID){
+    public synchronized boolean hasUserAlreadyVoted(String uID){
         return this.votingMembers.get(uID)[0];
     }
 
-    public Integer[] getCount(){
+    public synchronized Integer[] getCount(){
         return this.voteCount;
     }
 
-    public void setVoted(String uID, boolean value){
+    public synchronized void setVoted(String uID, boolean value){
         Boolean[] prev = this.votingMembers.get(uID);
         prev[0] = value;
         this.votingMembers.replace(uID, prev);
     }
 
-    public void setVoteCount(int position, int tag){
+    public synchronized void setVoteCount(int position, int tag){
         switch(tag){
             case 0:
                 voteCount[position]++;
@@ -43,13 +43,13 @@ public class MessageCountWrapper {
         }
     }
 
-    public void setVoteDuplicate(String uID, boolean value){
+    public synchronized void setVoteDuplicate(String uID, boolean value){
         Boolean[] prev = this.votingMembers.get(uID);
         prev[1] = value;
         this.votingMembers.replace(uID, prev);
     }
 
-    public boolean isVoteDuplicate(String uID){
+    public synchronized boolean isVoteDuplicate(String uID){
         return this.votingMembers.get(uID)[1];
     }
 }
