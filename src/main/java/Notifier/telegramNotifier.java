@@ -1,5 +1,6 @@
 package Notifier;
 
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -84,5 +85,21 @@ public class telegramNotifier extends ListenerAdapter {
             ++i;
         }
         event.getChannel().sendMessage(s).queue();
+    }
+
+    public boolean addChannel(String[] params){
+        if(channels.containsKey(params[0]) || channels.containsValue(params[1])){
+            return false;
+        }
+        channels.put(params[0],params[1]);
+        return true;
+    }
+
+    public boolean removeChannel(String param){
+        if(channels.containsKey(param)){
+            channels.remove(param);
+            return true;
+        }
+        return false;
     }
 }

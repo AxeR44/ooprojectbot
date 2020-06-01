@@ -26,6 +26,8 @@ public class CommandsImpl implements Commands {
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
+    private final String TICK = "\u2705";
+    private final String CROSS = "\u274C";
 
 
     public CommandsImpl(@Nullable String token) {
@@ -82,9 +84,9 @@ public class CommandsImpl implements Commands {
         u.openPrivateChannel().queue(privateChannel -> {
             privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
                     .queue(message -> {
-                            event.getMessage().addReaction("\u2705").queue();
+                            event.getMessage().addReaction(TICK).queue();
                         }, error ->{
-                            event.getMessage().addReaction("\u274C").queue();
+                            event.getMessage().addReaction(CROSS).queue();
                     });
         });
     }
@@ -295,8 +297,8 @@ public class CommandsImpl implements Commands {
                         String msgID = event.getChannel().sendMessage("@everyone\nVoting to kick" + msg[1] + ": 30 sec. remaining").complete().getId();
                         Message message = event.getChannel().retrieveMessageById(msgID).complete();
                         final long countdownStart = System.currentTimeMillis();
-                        message.addReaction("\u2705").complete();
-                        message.addReaction("\u274C").complete();
+                        message.addReaction(TICK).complete();
+                        message.addReaction(CROSS).complete();
                         final Timer t = new Timer();
                         t.scheduleAtFixedRate(new TimerTask() {
                             @Override
@@ -350,8 +352,8 @@ public class CommandsImpl implements Commands {
             event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage ->{
                 switch (params[1]) {
                     case "YesNo":
-                        surveyMessage.addReaction("\u2705").queue();
-                        surveyMessage.addReaction("\u274C").queue();
+                        surveyMessage.addReaction(TICK).queue();
+                        surveyMessage.addReaction(CROSS).queue();
                         break;
                     case "custom":
                         event.getChannel().sendMessage("Not implemented yet.").queue();
@@ -379,7 +381,7 @@ public class CommandsImpl implements Commands {
                     Integer[] count = MessageReactionHandler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
-                            event.getChannel().sendMessage("@everyone Survey Ended :\n" + question + "\n\u2705: " + count[0] + " Users\n\u274C: " + count[1] + " Users").queue();
+                            event.getChannel().sendMessage("@everyone Survey Ended :\n" + question + "\n" + TICK + ": " + count[0] + " Users\n" + CROSS + ": " + count[1] + " Users").queue();
                         });
                     });
                 }else{
@@ -388,6 +390,48 @@ public class CommandsImpl implements Commands {
             }catch (NullPointerException e){
                 event.getChannel().sendMessage("Survey ID not valid").queue();
             }
+        }
+    }
+
+    @Override
+    public void addTelegram(GuildMessageReceivedEvent event){
+        // .addTelegram <nome gruppo> -- <id>
+        if(event.getAuthor().getId().equals(event.getGuild().getOwnerId())) {
+            try {
+                String[] params = event.getMessage().getContentRaw().substring(13).split(" -- ");
+                if (params.length != 2) {
+                    event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+                } else {
+                    if (tNotifier.addChannel(params)) {
+                        event.getMessage().addReaction(TICK).queue();
+                    } else {
+                        event.getMessage().addReaction(CROSS).queue();
+                    }
+                }
+            } catch (IndexOutOfBoundsException e) {
+                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            }
+        }else{
+            event.getChannel().sendMessage("Solo l'owner può aggiungere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void removeTelegram(GuildMessageReceivedEvent event){
+        // .removeTelegram <nome gruppo>
+        if(event.getAuthor().getId().equals(event.getGuild().getOwnerId())) {
+            try {
+                String param = event.getMessage().getContentRaw().substring(16);
+                if (tNotifier.removeChannel(param)) {
+                    event.getMessage().addReaction(TICK).queue();
+                } else {
+                    event.getMessage().addReaction(CROSS).queue();
+                }
+            } catch (IndexOutOfBoundsException e) {
+                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            }
+        }else{
+            event.getChannel().sendMessage("Solo l'owner può rimuovere gruppi Telegram").queue();
         }
     }
 }

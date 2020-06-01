@@ -20,4 +20,6 @@ public interface Commands {
     void voteKick(GuildMessageReceivedEvent event);
     void survey(GuildMessageReceivedEvent event);
     void endSurvey(GuildMessageReceivedEvent event);
+    void addTelegram(GuildMessageReceivedEvent event);
+    void removeTelegram(GuildMessageReceivedEvent event);
 }
