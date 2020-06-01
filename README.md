@@ -35,8 +35,8 @@ Right now the bot can handle the following commands:
 * [x] Displaying available languages
 * [ ] Votekick user from server (staging)
 * [ ] Searching songs without link (.play <songName>)
-* [ ] Generating dynamic discord invite links
-* [ ] Creating simple surveys(yes/no)
+* [ ] Generating dynamic discord invite links (staging)
+* [ ] Creating simple surveys(yes/no) (staging)
 * [ ] Creating custom surveys with custom answers (using emotes)
 
 ## Authors
