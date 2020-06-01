@@ -54,7 +54,10 @@ public class CommandsImpl implements Commands {
                 ".leave: abbandona il canale vocale\n" +
                 "-----UTILITY-----\n" +
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
-                ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate");
+                ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
+                ".votekick @<username>: espelle un membro dal server\n" +
+                ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
+                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
