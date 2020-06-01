@@ -1,6 +1,5 @@
 package Notifier;
 
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +49,6 @@ public class telegramNotifier extends ListenerAdapter {
         HttpResponse<String> response = client
                 .send(request,HttpResponse.BodyHandlers.ofString());
 
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
         return response.statusCode() == 200;
     }
 
