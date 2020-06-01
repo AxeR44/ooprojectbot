@@ -36,7 +36,7 @@ public class MessageReactionHandler extends ListenerAdapter {
         }
     }
 
-    private void removeReactionFromMap(String msgID, MessageReactionRemoveEvent event){
+    private synchronized void removeReactionFromMap(String msgID, MessageReactionRemoveEvent event){
         String emoteName = event.getReactionEmote().getName();
         String uID = event.getMember().getId();
         if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
@@ -57,7 +57,7 @@ public class MessageReactionHandler extends ListenerAdapter {
         return arr;
     }
 
-    private void addReactionToMap(String msgID, MessageReactionAddEvent event){
+    private synchronized void addReactionToMap(String msgID, MessageReactionAddEvent event){
         String emoteName = event.getReactionEmote().getName();
         if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
             if(!reactionsCount.containsKey(msgID)){

@@ -27,17 +27,20 @@ public class telegramNotifier extends ListenerAdapter {
         String[] elements = this.parse(args);
         String chatId = elements[1];
         String Message = elements[0];
+        UriBuilder builder;
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .version(HttpClient.Version.HTTP_2)
                 .build();
 
-        UriBuilder builder = UriBuilder
-                .fromUri("https://api.telegram.org")
-                .path("/{token}/sendMessage")
-                .queryParam("chat_id",channels.get(chatId))
-                .queryParam("text", "Inviato da " + event.getAuthor().getName() + " : " + Message);
+        synchronized (channels){
+            builder = UriBuilder
+                    .fromUri("https://api.telegram.org")
+                    .path("/{token}/sendMessage")
+                    .queryParam("chat_id",channels.get(chatId))
+                    .queryParam("text", "Inviato da " + event.getAuthor().getName() + " : " + Message);
+        }
 
         HttpRequest request = HttpRequest
                 .newBuilder()
@@ -49,8 +52,6 @@ public class telegramNotifier extends ListenerAdapter {
         HttpResponse<String> response = client
                 .send(request,HttpResponse.BodyHandlers.ofString());
 
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
         return response.statusCode() == 200;
     }
 
@@ -76,7 +77,7 @@ public class telegramNotifier extends ListenerAdapter {
         return new String[]{l.get(1),l.get(2)};
     }
 
-    public void listChannels(GuildMessageReceivedEvent event){
+    public synchronized void listChannels(GuildMessageReceivedEvent event){
         String s = "";
         int i = 1;
         for(String chan : channels.keySet()){
@@ -84,5 +85,21 @@ public class telegramNotifier extends ListenerAdapter {
             ++i;
         }
         event.getChannel().sendMessage(s).queue();
+    }
+
+    public synchronized boolean addChannel(String[] params){
+        if(channels.containsKey(params[0]) || channels.containsValue(params[1])){
+            return false;
+        }
+        channels.put(params[0],params[1]);
+        return true;
+    }
+
+    public synchronized boolean removeChannel(String param){
+        if(channels.containsKey(param)){
+            channels.remove(param);
+            return true;
+        }
+        return false;
     }
 }

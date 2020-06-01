@@ -101,6 +101,12 @@ public class Listener extends ListenerAdapter {
                     case "endSurvey":
                         commands.endSurvey(event);
                         break;
+                    case "addTelegram":
+                        commands.addTelegram(event);
+                        break;
+                    case "removeTelegram":
+                        commands.removeTelegram(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);
