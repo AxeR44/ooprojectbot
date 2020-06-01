@@ -323,4 +323,68 @@ public class CommandsImpl implements Commands {
             }
         }
     }
+
+    @Override
+    public void survey(GuildMessageReceivedEvent event) {
+        /*.survey <question> -- <surveytype> [-- options]
+        *
+        *.survey <question> -- YesNo
+        *.survey Andiamo al mare domani? -- YesNo
+        *
+        *.survey <question> -- custom -- answeringOptions
+        *.survey Che vogliamo fare stasera? :pizza: andiamo a mangiare una pizza :pancakes: mangiamo pancakes -- custom -- :pizza: :pancakes:
+        */
+        final Message message = event.getMessage();
+        String Rawcontent = message.getContentRaw();
+        String[] params = Rawcontent.substring(8).split(" -- ");
+        if (params.length < 2) {
+            event.getChannel().sendMessage("Numero di parametri invalidi").queue();
+        } else {
+            final String surveyID = event.getChannel().sendMessage("@everyone\nVoting for:\n" + params[0]).complete().getId();
+            message.getAuthor().openPrivateChannel().queue(privateChannel -> {
+                privateChannel.sendMessage("Survey opened\n" + params[0] + "\nID: " + event.getMessage().getId() + "/" + surveyID).queue();
+            });
+            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage ->{
+                switch (params[1]) {
+                    case "YesNo":
+                        surveyMessage.addReaction("\u2705").queue();
+                        surveyMessage.addReaction("\u274C").queue();
+                        break;
+                    case "custom":
+                        event.getChannel().sendMessage("Not implemented yet.").queue();
+                        break;
+                    default:
+                        event.getChannel().sendMessage("Survey type not valid").queue();
+                        break;
+                }
+            });
+        }
+    }
+
+    @Override
+    public void endSurvey(GuildMessageReceivedEvent event){
+        String[] params = event.getMessage().getContentRaw().split(" ");
+        if(params.length != 2) {
+            event.getChannel().sendMessage("Numero parametri invalido").queue();
+        }
+        else{
+            try {
+                String[] ids = params[1].split("/");
+                Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
+                String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
+                if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
+                    Integer[] count = MessageReactionHandler.getReactionsCount(ids[1]);
+                    event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
+                        message.delete().queue(success -> {
+                            event.getChannel().sendMessage("@everyone Survey Ended :\n" + question + "\n\u2705: " + count[0] + " Users\n\u274C: " + count[1] + " Users").queue();
+                        });
+                    });
+                }else{
+                    event.getChannel().sendMessage("You can't end a survey you didn't create").queue();
+                }
+            }catch (NullPointerException e){
+                event.getChannel().sendMessage("Survey ID not valid").queue();
+            }
+        }
+    }
 }

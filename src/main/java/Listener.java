@@ -95,6 +95,12 @@ public class Listener extends ListenerAdapter {
                     case "votekick":
                         commands.voteKick(event);
                         break;
+                    case "survey":
+                        commands.survey(event);
+                        break;
+                    case "endSurvey":
+                        commands.endSurvey(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

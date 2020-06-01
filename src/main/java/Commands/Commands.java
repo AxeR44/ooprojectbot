@@ -18,4 +18,6 @@ public interface Commands {
     void rJokes(GuildMessageReceivedEvent event);
     void languagePrinter(GuildMessageReceivedEvent event);
     void voteKick(GuildMessageReceivedEvent event);
+    void survey(GuildMessageReceivedEvent event);
+    void endSurvey(GuildMessageReceivedEvent event);
 }

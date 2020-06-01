@@ -18,6 +18,8 @@ Right now the bot can handle the following commands:
 .translate <text> -- <sourceLanguage> <targetLanguage>: Translates <text> from <sourceLanguage> to <targetLanguage>
 .langlist: lists all the languages supported by the .translate command
 .votekick @<username>: kicks a user from the server
+.survey <question> -- YesNo: creates a simple survey (Yes/No)
+.endSurvey <surveyID>: ends a survey displaying the result
 ```
 
 ## TO-DO LIST
@@ -35,8 +37,8 @@ Right now the bot can handle the following commands:
 * [x] Displaying available languages
 * [ ] Votekick user from server (staging)
 * [ ] Searching songs without link (.play <songName>)
-* [ ] Generating dynamic discord invite links
-* [ ] Creating simple surveys(yes/no)
+* [ ] Generating dynamic discord invite links (staging)
+* [ ] Creating simple surveys(yes/no) (staging)
 * [ ] Creating custom surveys with custom answers (using emotes)
 
 ## Authors
