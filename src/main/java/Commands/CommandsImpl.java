@@ -394,9 +394,17 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void addTelegram(GuildMessageReceivedEvent event){
+    public void addTelegram(GuildMessageReceivedEvent event) {
         // .addTelegram <nome gruppo> -- <id>
-        if(event.getAuthor().getId().equals(event.getGuild().getOwnerId())) {
+        Member m = event.getMember();
+        List<Role> roles = m.getRoles();
+        boolean isAuthorized = false;
+        for (Role r : roles) {
+            if (r.getName().equals("Telegram")) {
+                isAuthorized = true;
+            }
+        }
+        if (isAuthorized) {
             try {
                 String[] params = event.getMessage().getContentRaw().substring(13).split(" -- ");
                 if (params.length != 2) {
@@ -411,15 +419,24 @@ public class CommandsImpl implements Commands {
             } catch (IndexOutOfBoundsException e) {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
-        }else{
-            event.getChannel().sendMessage("Solo l'owner può aggiungere gruppi Telegram").queue();
+        }else {
+            event.getMessage().addReaction(CROSS).queue();
+            event.getChannel().sendMessage("Solo chi è autorizzato può aggiungere gruppi").queue();
         }
     }
 
     @Override
     public void removeTelegram(GuildMessageReceivedEvent event){
         // .removeTelegram <nome gruppo>
-        if(event.getAuthor().getId().equals(event.getGuild().getOwnerId())) {
+        Member m = event.getMember();
+        List<Role> roles = m.getRoles();
+        boolean isAuthorized = false;
+        for (Role r : roles) {
+            if (r.getName().equals("Telegram")) {
+                isAuthorized = true;
+            }
+        }
+        if(isAuthorized) {
             try {
                 String param = event.getMessage().getContentRaw().substring(16);
                 if (tNotifier.removeChannel(param)) {
@@ -431,7 +448,8 @@ public class CommandsImpl implements Commands {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
         }else{
-            event.getChannel().sendMessage("Solo l'owner può rimuovere gruppi Telegram").queue();
+            event.getMessage().addReaction(CROSS).queue();
+            event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
         }
     }
 }
