@@ -39,7 +39,7 @@ Right now the bot can handle the following commands:
 * [ ] Searching songs without link (.play <songName>)
 * [ ] Generating dynamic discord invite links (staging)
 * [ ] Creating simple surveys(yes/no) (staging)
-* [ ] Creating custom surveys with custom answers (using emotes)
+* [ ] Creating custom surveys with custom answers (implementing)
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
