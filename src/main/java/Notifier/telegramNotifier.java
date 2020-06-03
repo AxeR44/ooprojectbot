@@ -80,11 +80,15 @@ public class telegramNotifier extends ListenerAdapter {
     public synchronized void listChannels(GuildMessageReceivedEvent event){
         String s = "";
         int i = 1;
-        for(String chan : channels.keySet()){
-            s += (i + ") " + chan + "\n");
-            ++i;
+        if(channels.size() > 0){
+            for(String chan : channels.keySet()){
+                s += (i + ") " + chan + "\n");
+                ++i;
+            }
+            event.getChannel().sendMessage(s).queue();
+        }else{
+            event.getChannel().sendMessage("Non ci sono canali telegram disponibili").queue();
         }
-        event.getChannel().sendMessage(s).queue();
     }
 
     public synchronized boolean addChannel(String[] params){
