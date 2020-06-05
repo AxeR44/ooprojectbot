@@ -295,14 +295,16 @@ public class CommandsImpl implements Commands {
                             @Override
                             public void run() {
                                 if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
-                                    Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    HashMap<String, Integer> cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    final Integer tickCount = cnt.get(TICK);
+                                    final Integer crossCount = cnt.get(CROSS);
                                     event.getChannel().deleteMessageById(msgID).queue();
-                                    if (cnt[0] > quorum) {
+                                    if (cnt.get(TICK) > quorum) {
                                         event.getGuild().kick(userID).queue(success->{
-                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                         });
                                     } else {
-                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                     }
                                     t.cancel();
                                 } else {
@@ -339,7 +341,11 @@ public class CommandsImpl implements Commands {
                         surveyMessage.addReaction(CROSS).queue();
                         break;
                     case "custom":
-                        event.getChannel().sendMessage("Not implemented yet.").queue();
+                        String[] emotes = params[2].split(" ");
+                        for(String emote : emotes){
+                            surveyMessage.addReaction(emote).queue();
+                        }
+                        //event.getChannel().sendMessage("Not implemented yet.").queue();
                         break;
                     default:
                         event.getChannel().sendMessage("Survey type not valid").queue();
@@ -361,10 +367,15 @@ public class CommandsImpl implements Commands {
                 Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
                 String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
                 if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
-                    Integer[] count = MessageReactionHandler.getReactionsCount(ids[1]);
+                    HashMap<String,Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
-                            event.getChannel().sendMessage("@everyone Survey Ended :\n" + question + "\n" + TICK + ": " + count[0] + " Users\n" + CROSS + ": " + count[1] + " Users").queue();
+                            StringBuilder sBuilder = new StringBuilder();
+                            sBuilder.append("@everyone Survey Ended :\n" + question + "" );
+                            for (String k : count.keySet()) {
+                                sBuilder.append("\n" + k + ": " + count.get(k) + " Users");
+                            }
+                            event.getChannel().sendMessage(sBuilder.toString()).queue();
                         });
                     });
                 }else{

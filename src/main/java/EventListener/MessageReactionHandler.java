@@ -39,11 +39,13 @@ public class MessageReactionHandler extends ListenerAdapter {
     private synchronized void removeReactionFromMap(String msgID, MessageReactionRemoveEvent event){
         String emoteName = event.getReactionEmote().getName();
         String uID = event.getMember().getId();
-        if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
-            MessageCountWrapper wrp = reactionsCount.get(msgID);
+        MessageCountWrapper wrp = reactionsCount.get(msgID);
+        if(wrp.hasReaction(emoteName)){
             if(!wrp.isVoteDuplicate(uID)){
-                wrapperModify(wrp, 1, emoteName);
-                wrp.setVoted(event.getMember().getId(),false);
+                if(wrp.setVoteCount(emoteName, 1)){
+                    wrp.setVoted(event.getMember().getId(),false);
+                }
+                //wrapperModify(wrp, 1, emoteName);
             }else{
                 wrp.setVoteDuplicate(uID, false);
             }
@@ -51,15 +53,15 @@ public class MessageReactionHandler extends ListenerAdapter {
         }
     }
 
-    public static Integer[] getReactionsCount(String msgID){
-        Integer[] arr = reactionsCount.get(msgID).getCount();
+    public static HashMap<String, Integer> getReactionsCount(String msgID){
+        HashMap<String, Integer> count = reactionsCount.get(msgID).getCount();
         reactionsCount.remove(msgID);
-        return arr;
+        return count;
     }
 
     private synchronized void addReactionToMap(String msgID, MessageReactionAddEvent event){
         String emoteName = event.getReactionEmote().getName();
-        if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
+        //if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
             if(!reactionsCount.containsKey(msgID)){
                 reactionsCount.put(msgID, new MessageCountWrapper(event.getTextChannel().getGuild().getMembers()));  //TICK 0 CROSS 1
             }
@@ -72,25 +74,32 @@ public class MessageReactionHandler extends ListenerAdapter {
                     wrp.setVoteDuplicate(uID, true);
                     event.getTextChannel().removeReactionById(msgID, emoteName, event.getMember().getUser()).complete();
                 }else{
-                    wrapperModify(wrp, 0, emoteName);
-                    wrp.setVoted(uID, true);
-                    reactionsCount.replace(msgID, wrp);
+                    if(wrp.hasReaction(emoteName)){
+                        if(wrp.setVoteCount(emoteName, 0)){
+                            wrp.setVoted(uID, true);
+                        }
+                        reactionsCount.replace(msgID, wrp);
+                    }else{
+                        event.getTextChannel().removeReactionById(msgID, emoteName, event.getMember().getUser()).complete();
+                    }
                 }
             }else{
-                //it's me but do nothing
+                //add reaction to allowed reaction for message
+                wrp.botAddReaction(emoteName);
             }
-        }
+        //}
     }
 
 
     private void wrapperModify(MessageCountWrapper wrp, int tag, String emoteName){
-        switch(emoteName) {
+
+        /*switch(emoteName) {
             case TICK:
                 wrp.setVoteCount(0, tag);
                 break;
             case CROSS:
                 wrp.setVoteCount(1,tag);
                 break;
-        }
+        }*/
     }
 }
