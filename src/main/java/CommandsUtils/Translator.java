@@ -82,8 +82,6 @@ public class Translator {
     }
 
     public String translate(String[] params) throws Exception {
-        // params[0] = stringa da tradurre, params[1] lingua sorgente, params[2] lingua target
-
         String[] parsed = parse(params);
 
 

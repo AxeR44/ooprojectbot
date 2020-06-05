@@ -38,7 +38,6 @@ public class Listener extends ListenerAdapter {
                                 event.getMessage().addReaction("\u274C").queue();
                             }
                         } catch (Exception e) {
-                            //event.getChannel().sendMessage(e.getMessage()).queue();
                             System.out.println("ERROR: " + e.getMessage());
                             event.getChannel().sendMessage(e.getMessage()).queue();
                         }

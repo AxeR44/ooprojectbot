@@ -178,7 +178,6 @@ public class CommandsImpl implements Commands {
             String result = new Translator().translate(args);
             JSONObject jobj = new JSONObject(result);
             EmbedBuilder traduzione = new EmbedBuilder();
-            //traduzione.setDescription("Testo tradotto: " + jobj.getString("translatedText"));
             traduzione.addField("Traduzione:", jobj.getString("translatedText"), false);
             traduzione.setColor(Color.blue);
             event.getChannel().sendTyping().queue();
@@ -214,33 +213,26 @@ public class CommandsImpl implements Commands {
                 InputStream iStream = this.getClass().getClassLoader().getResourceAsStream("Mettaton.gif");
                 event.getChannel().sendFile(iStream, "Mettaton.gif").complete();
             } catch (Exception e) {
-                //nop
                 System.out.println("Error " + e.getMessage());
             }
             String mess = "How many letters are there in the name Mettaton";
             String msgID = event.getChannel().sendMessage(mess).complete().getId();
-            Thread modify = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String tmp = mess;
-                    boolean error = false;
-                    String innerID = msgID;
-                    while (tmp.length() < 106 && (!error)) { //checking for string char length or error while executing
-                        try {
-                            Message m = event.getChannel().retrieveMessageById(innerID).complete();
-                            m.editMessage(tmp).complete();
-                        } catch (ErrorResponseException e) {
-                            /*System.out.println("Message was deleted. Resending..");
-                            innerID = event.getChannel().sendMessage(tmp).complete().getId();*/
-                            //OR
-                            error = true;
-                        }
-                        tmp += "n";
+            Thread modify = new Thread(() -> {
+                String tmp = mess;
+                boolean error = false;
+                String innerID = msgID;
+                while (tmp.length() < 106 && (!error)) { //checking for string char length or error while executing
+                    try {
+                        Message message = event.getChannel().retrieveMessageById(innerID).complete();
+                        message.editMessage(tmp).complete();
+                    } catch (ErrorResponseException e) {
+                        error = true;
                     }
-                    if (error) {
-                        System.out.println("Message deleted, aborting Mettaton");
-                        play(event, null, false);
-                    }
+                    tmp += "n";
+                }
+                if (error) {
+                    System.out.println("Message deleted, aborting Mettaton");
+                    play(event, null, false);
                 }
             });
             modify.start();
@@ -281,7 +273,6 @@ public class CommandsImpl implements Commands {
             //exception
             event.getChannel().sendMessage("Numero di parametri invalidi").queue();
         } else {
-            //event.getChannel().sendMessage(event.getMessage().getContentRaw()).complete();
             final String userID = msg[1].substring(3, msg[1].length() - 1);
             System.out.println(event.getMessage().getContentRaw());
             if (msg[1].startsWith("<@!") && msg[1].endsWith(">")) {
@@ -331,14 +322,6 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void survey(GuildMessageReceivedEvent event) {
-        /*.survey <question> -- <surveytype> [-- options]
-        *
-        *.survey <question> -- YesNo
-        *.survey Andiamo al mare domani? -- YesNo
-        *
-        *.survey <question> -- custom -- answeringOptions
-        *.survey Che vogliamo fare stasera? :pizza: andiamo a mangiare una pizza :pancakes: mangiamo pancakes -- custom -- :pizza: :pancakes:
-        */
         final Message message = event.getMessage();
         String Rawcontent = message.getContentRaw();
         String[] params = Rawcontent.substring(8).split(" -- ");
@@ -395,7 +378,6 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void addTelegram(GuildMessageReceivedEvent event) {
-        // .addTelegram <nome gruppo> -- <id>
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -427,7 +409,6 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void removeTelegram(GuildMessageReceivedEvent event){
-        // .removeTelegram <nome gruppo>
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;

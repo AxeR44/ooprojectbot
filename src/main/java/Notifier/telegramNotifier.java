@@ -17,15 +17,12 @@ public class telegramNotifier{
 
     private String token;
     private final HashMap<String, HashMap<String, String>> channels;
-    //private HashMap<String,String> channels;
 
     public telegramNotifier(@NotNull String token){
         this.token = token;
         channels = new HashMap<>();
-        //channels.put("Bot-tana","-1001190296894");
     }
 
-    //public boolean sendMessage(@NotNull String Message, @NotNull String chatId) throws IOException, InterruptedException{
     public boolean sendMessage(@NotNull String[] args, GuildMessageReceivedEvent event)throws Exception{
         String[] elements = this.parse(args);
         String chatName = elements[1];
