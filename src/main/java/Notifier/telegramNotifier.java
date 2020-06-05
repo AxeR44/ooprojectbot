@@ -1,5 +1,7 @@
 package Notifier;
 
+import com.iwebpp.crypto.TweetNaclFast;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -11,23 +13,33 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class telegramNotifier extends ListenerAdapter {
+public class telegramNotifier{
 
     private String token;
-    private HashMap<String,String> channels;
+    private final HashMap<String, HashMap<String, String>> channels;
+    //private HashMap<String,String> channels;
 
     public telegramNotifier(@NotNull String token){
         this.token = token;
         channels = new HashMap<>();
-        channels.put("Bot-tana","-1001190296894");
+        //channels.put("Bot-tana","-1001190296894");
     }
 
     //public boolean sendMessage(@NotNull String Message, @NotNull String chatId) throws IOException, InterruptedException{
     public boolean sendMessage(@NotNull String[] args, GuildMessageReceivedEvent event)throws Exception{
         String[] elements = this.parse(args);
-        String chatId = elements[1];
+        String chatName = elements[1];
         String Message = elements[0];
         UriBuilder builder;
+        HashMap<String, String> guildChannels = channels.get(event.getGuild().getId());
+        String chatId;
+        if(guildChannels == null){
+            throw new Exception("This guild channels no telegram groups");
+        }
+        chatId = guildChannels.get(chatName);
+        if(chatId == null){
+            throw new Exception("This guild channels no telegram groups");
+        }
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
@@ -38,7 +50,7 @@ public class telegramNotifier extends ListenerAdapter {
             builder = UriBuilder
                     .fromUri("https://api.telegram.org")
                     .path("/{token}/sendMessage")
-                    .queryParam("chat_id",channels.get(chatId))
+                    .queryParam("chat_id",chatId)
                     .queryParam("text", "Inviato da " + event.getAuthor().getName() + " : " + Message);
         }
 
@@ -80,30 +92,44 @@ public class telegramNotifier extends ListenerAdapter {
     public synchronized void listChannels(GuildMessageReceivedEvent event){
         String s = "";
         int i = 1;
+        HashMap<String, String> guildChannels = null;
         if(channels.size() > 0){
-            for(String chan : channels.keySet()){
-                s += (i + ") " + chan + "\n");
-                ++i;
+            guildChannels = channels.get(event.getGuild().getId());
+            if(guildChannels != null && guildChannels.size() > 0) {
+                for (String chan : guildChannels.keySet()) {
+                    s += (i + ") " + chan + "\n");
+                    ++i;
+                }
+                event.getChannel().sendMessage(s).queue();
+            }else{
+                event.getChannel().sendMessage("Non ci sono canali telegram disponibili").queue();
             }
-            event.getChannel().sendMessage(s).queue();
         }else{
             event.getChannel().sendMessage("Non ci sono canali telegram disponibili").queue();
         }
     }
 
-    public synchronized boolean addChannel(String[] params){
-        if(channels.containsKey(params[0]) || channels.containsValue(params[1])){
+    public synchronized boolean addChannel(String guildID, String[] params){
+        if(!channels.containsKey(guildID)){
+            channels.put(guildID, new HashMap<>());
+        }
+        HashMap<String, String> guildChannels = channels.get(guildID);
+        if(guildChannels.containsKey(params[0]) || guildChannels.containsValue(params[1])){
             return false;
         }
-        channels.put(params[0],params[1]);
+        guildChannels.put(params[0],params[1]);
+        channels.replace(guildID, guildChannels);
         return true;
     }
 
-    public synchronized boolean removeChannel(String param){
-        if(channels.containsKey(param)){
-            channels.remove(param);
-            return true;
+
+    public synchronized boolean removeChannel(String guildID, String channelName){
+        HashMap<String, String> guildChannels = channels.get(guildID);
+        if(guildChannels == null){
+            return false;
         }
-        return false;
+        guildChannels.remove(channelName);
+        channels.replace(guildID, guildChannels);
+        return true;
     }
 }

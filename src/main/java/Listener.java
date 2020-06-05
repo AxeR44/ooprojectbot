@@ -40,7 +40,7 @@ public class Listener extends ListenerAdapter {
                         } catch (Exception e) {
                             //event.getChannel().sendMessage(e.getMessage()).queue();
                             System.out.println("ERROR: " + e.getMessage());
-                            event.getChannel().sendMessage("Uno o più parametri sono invalidi \u267F").queue();
+                            event.getChannel().sendMessage(e.getMessage()).queue();
                         }
                         break;
                     case "help":

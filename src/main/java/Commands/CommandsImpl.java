@@ -410,7 +410,7 @@ public class CommandsImpl implements Commands {
                 if (params.length != 2) {
                     event.getChannel().sendMessage("Numero dei parametri invalido").queue();
                 } else {
-                    if (tNotifier.addChannel(params)) {
+                    if (tNotifier.addChannel(event.getGuild().getId(), params)) {
                         event.getMessage().addReaction(TICK).queue();
                     } else {
                         event.getMessage().addReaction(CROSS).queue();
@@ -439,7 +439,7 @@ public class CommandsImpl implements Commands {
         if(isAuthorized) {
             try {
                 String param = event.getMessage().getContentRaw().substring(16);
-                if (tNotifier.removeChannel(param)) {
+                if (tNotifier.removeChannel(event.getGuild().getId(), param)) {
                     event.getMessage().addReaction(TICK).queue();
                 } else {
                     event.getMessage().addReaction(CROSS).queue();
