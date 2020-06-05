@@ -40,6 +40,7 @@ Right now the bot can handle the following commands:
 * [ ] Generating dynamic discord invite links (staging)
 * [ ] Creating simple surveys(yes/no) (staging)
 * [ ] Creating custom surveys with custom answers (using emotes)
+* [ ] Adding and removing Telegram groups (staging)
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
