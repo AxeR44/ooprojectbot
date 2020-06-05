@@ -35,11 +35,13 @@ Right now the bot can handle the following commands:
 * [x] Displaying songs queue
 * [x] Translating text
 * [x] Displaying available languages
-* [ ] Votekick user from server (staging)
+* [x] Votekick user from server
 * [ ] Searching songs without link (.play <songName>)
-* [ ] Generating dynamic discord invite links (staging)
-* [ ] Creating simple surveys(yes/no) (staging)
-* [ ] Creating custom surveys with custom answers (implementing)
+* [x] Generating dynamic discord invite links (staging)
+* [x] Creating simple surveys(yes/no) (staging)
+* [ ] Creating custom surveys with custom answers (using emotes)
+* [x] Adding and removing Telegram groups (staging)
+* [x] Every guild has its own Telegram Groups
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
