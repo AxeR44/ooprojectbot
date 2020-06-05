@@ -41,6 +41,11 @@
             <artifactId>json</artifactId>
             <version>20190722</version>
         </dependency>
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots</artifactId>
+            <version>4.9</version>
+        </dependency>
     </dependencies>
 
 	<build>
@@ -53,7 +58,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>ProvaBot</mainClass>
+							<mainClass>Main.ProvaBot</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -75,7 +80,7 @@
 		  <archive>
 				<manifest>
 					<addClasspath>true</addClasspath>
-					<mainClass>ProvaBot</mainClass>
+					<mainClass>Main.ProvaBot</mainClass>
 				</manifest>
 			</archive>
         </configuration>

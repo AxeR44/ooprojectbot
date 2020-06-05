@@ -2,9 +2,10 @@ package Commands;
 
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
-import Notifier.telegramNotifier;
+import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
+import Wrappers.ChannelList;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -21,21 +22,22 @@ import java.util.List;
 
 public class CommandsImpl implements Commands {
 
-    private telegramNotifier tNotifier;
+    private TelegramNotifierAsync tnAsync;
     private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
     private final String TICK = "\u2705";
     private final String CROSS = "\u274C";
+    private ChannelList chList;
 
 
-    public CommandsImpl(@Nullable String token) {
-        tNotifier = token != null ? new telegramNotifier(token) : null;
+    public CommandsImpl(ChannelList list , TelegramNotifierAsync tnAsync) {
+        this.tnAsync = tnAsync;
         player = new Player();
         jokesGenerator = new RandomJokes();
         langPrinter = new Translator();
-
+        this.chList = list;
     }
 
     @Override
@@ -104,16 +106,38 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public boolean sendTelegram(String[] args, GuildMessageReceivedEvent event) throws Exception {
-        if (this.tNotifier != null)
-            return tNotifier.sendMessage(args, event);
+    public boolean sendTelegram(GuildMessageReceivedEvent event) throws Exception {
+        //message: params[0] chatname = params[1]
+        String[] args = event.getMessage().getContentRaw().substring(10).split(" -- ");
+        if(args[0].split(" ").length != 0) {
+            return tnAsync.sendMessage(event.getGuild().getId(), args[1], args[0], event.getAuthor().getName());
+        }
+        event.getChannel().sendMessage("Invalid Argument(s)").queue();
         return false;
+        /*if (this.tNotifier != null)
+            return tNotifier.sendMessage(args, event);
+        return false;*/
     }
 
     @Override
     public void listChannels(GuildMessageReceivedEvent event) {
-        if (this.tNotifier != null)
-            tNotifier.listChannels(event);
+        try{
+            HashMap<String,String> guildChannels = chList.getWrapperFromGuildID(event.getGuild().getId()).getGuildChannels();
+            if(guildChannels.size() > 0) {
+                int i = 0;
+                StringBuilder builder = new StringBuilder();
+                for (String channelName : guildChannels.values()) {
+                    builder.append(i).append(") ").append(channelName).append("\n");
+                }
+                event.getChannel().sendMessage(builder.toString()).queue();
+            }else{
+                event.getChannel().sendMessage("No channel available for guild").queue();
+            }
+        }catch(NullPointerException e){
+            event.getChannel().sendMessage("No channel available for guild").queue();
+        }
+        /*if (this.tNotifier != null)
+            tNotifier.listChannels(event);*/
     }
 
     @Override
@@ -393,7 +417,7 @@ public class CommandsImpl implements Commands {
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
         for (Role r : roles) {
-            if (r.getName().equals("Telegram")) {
+            if (r.getName().equals("Telegram") || m.isOwner()) {
                 isAuthorized = true;
             }
         }
@@ -403,7 +427,8 @@ public class CommandsImpl implements Commands {
                 if (params.length != 2) {
                     event.getChannel().sendMessage("Numero dei parametri invalido").queue();
                 } else {
-                    if (tNotifier.addChannel(event.getGuild().getId(), params)) {
+                    //if (tNotifier.addChannel(event.getGuild().getId(), params)) {
+                    if(chList.add(event.getGuild().getId(), params[0], params[1])){
                         event.getMessage().addReaction(TICK).queue();
                     } else {
                         event.getMessage().addReaction(CROSS).queue();
@@ -424,14 +449,15 @@ public class CommandsImpl implements Commands {
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
         for (Role r : roles) {
-            if (r.getName().equals("Telegram")) {
+            if (r.getName().equals("Telegram") || m.isOwner()) {
                 isAuthorized = true;
             }
         }
         if(isAuthorized) {
             try {
                 String param = event.getMessage().getContentRaw().substring(16);
-                if (tNotifier.removeChannel(event.getGuild().getId(), param)) {
+                //if (tNotifier.removeChannel(event.getGuild().getId(), param)) {
+                if(chList.remove(event.getGuild().getId(), param)){
                     event.getMessage().addReaction(TICK).queue();
                 } else {
                     event.getMessage().addReaction(CROSS).queue();
@@ -444,4 +470,5 @@ public class CommandsImpl implements Commands {
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
         }
     }
+
 }

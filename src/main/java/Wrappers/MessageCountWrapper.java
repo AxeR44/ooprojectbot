@@ -42,7 +42,7 @@ public class MessageCountWrapper {
     public synchronized void setVoted(String uID, boolean value){
         Boolean[] prev = this.votingMembers.get(uID);
         prev[0] = value;
-        this.votingMembers.replace(uID, prev);
+        //this.votingMembers.replace(uID, prev);
     }
 
     public synchronized boolean setVoteCount(String emoteName, int tag){
@@ -56,7 +56,7 @@ public class MessageCountWrapper {
                     --count;
                     break;
             }
-            reactionCount.replace(emoteName, count);
+            //reactionCount.replace(emoteName, count);
             return true;
         }
         return false;
@@ -65,7 +65,7 @@ public class MessageCountWrapper {
     public synchronized void setVoteDuplicate(String uID, boolean value){
         Boolean[] prev = this.votingMembers.get(uID);
         prev[1] = value;
-        this.votingMembers.replace(uID, prev);
+        //this.votingMembers.replace(uID, prev);
     }
 
     public synchronized boolean isVoteDuplicate(String uID){
