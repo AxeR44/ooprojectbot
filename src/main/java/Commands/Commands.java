@@ -17,4 +17,9 @@ public interface Commands {
     void quiz(GuildMessageReceivedEvent event);
     void rJokes(GuildMessageReceivedEvent event);
     void languagePrinter(GuildMessageReceivedEvent event);
+    void voteKick(GuildMessageReceivedEvent event);
+    void survey(GuildMessageReceivedEvent event);
+    void endSurvey(GuildMessageReceivedEvent event);
+    void addTelegram(GuildMessageReceivedEvent event);
+    void removeTelegram(GuildMessageReceivedEvent event);
 }

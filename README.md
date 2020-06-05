@@ -17,6 +17,9 @@ Right now the bot can handle the following commands:
 .leave: disconnects from a voice channel
 .translate <text> -- <sourceLanguage> <targetLanguage>: Translates <text> from <sourceLanguage> to <targetLanguage>
 .langlist: lists all the languages supported by the .translate command
+.votekick @<username>: kicks a user from the server
+.survey <question> -- YesNo: creates a simple survey (Yes/No)
+.endSurvey <surveyID>: ends a survey displaying the result
 ```
 
 ## TO-DO LIST
@@ -32,11 +35,16 @@ Right now the bot can handle the following commands:
 * [x] Displaying songs queue
 * [x] Translating text
 * [x] Displaying available languages
-* [ ] Votekick user from server (staging)
+* [x] Votekick user from server
 * [ ] Searching songs without link (.play <songName>)
-* [ ] Generating dynamic discord invite links
-* [ ] Allowing every guild owner to add more telegram groups
+* [x] Generating dynamic discord invite links (staging)
+* [x] Creating simple surveys(yes/no) (staging)
+* [ ] Creating custom surveys with custom answers (using emotes)
+* [x] Adding and removing Telegram groups (staging)
+* [x] Every guild has its own Telegram Groups
 
 ## Authors
 * **Alessandro Albini** - [AxeR44](https://github.com/AxeR44)
 * **Alessandro Soraci** - [Sandrone99](https://github.com/Sandrone99)
+
+

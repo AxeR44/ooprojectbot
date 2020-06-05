@@ -38,9 +38,8 @@ public class Listener extends ListenerAdapter {
                                 event.getMessage().addReaction("\u274C").queue();
                             }
                         } catch (Exception e) {
-                            //event.getChannel().sendMessage(e.getMessage()).queue();
                             System.out.println("ERROR: " + e.getMessage());
-                            event.getChannel().sendMessage("Uno o più parametri sono invalidi \u267F").queue();
+                            event.getChannel().sendMessage(e.getMessage()).queue();
                         }
                         break;
                     case "help":
@@ -91,6 +90,21 @@ public class Listener extends ListenerAdapter {
                         break;
                     case "langlist":
                         commands.languagePrinter(event);
+                        break;
+                    case "votekick":
+                        commands.voteKick(event);
+                        break;
+                    case "survey":
+                        commands.survey(event);
+                        break;
+                    case "endSurvey":
+                        commands.endSurvey(event);
+                        break;
+                    case "addTelegram":
+                        commands.addTelegram(event);
+                        break;
+                    case "removeTelegram":
+                        commands.removeTelegram(event);
                         break;
                 }
             } else {
