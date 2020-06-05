@@ -41,6 +41,11 @@
             <artifactId>json</artifactId>
             <version>20190722</version>
         </dependency>
+        <dependency>
+            <groupId>org.fastily</groupId>
+            <artifactId>jwiki</artifactId>
+            <version>1.8.0</version>
+        </dependency>
     </dependencies>
 
 	<build>

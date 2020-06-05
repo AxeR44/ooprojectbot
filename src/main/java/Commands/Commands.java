@@ -1,5 +1,6 @@
 package Commands;
 
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 public interface Commands {
@@ -22,4 +23,5 @@ public interface Commands {
     void endSurvey(GuildMessageReceivedEvent event);
     void addTelegram(GuildMessageReceivedEvent event);
     void removeTelegram(GuildMessageReceivedEvent event);
+    void wikiResearch(GuildMessageReceivedEvent event);
 }

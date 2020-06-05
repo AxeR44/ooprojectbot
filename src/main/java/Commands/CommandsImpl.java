@@ -13,6 +13,9 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
+import org.fastily.jwiki.core.*;
+import org.fastily.jwiki.dwrap.*;
+import org.fastily.jwiki.util.*;
 
 import java.awt.*;
 import java.io.InputStream;
@@ -442,6 +445,31 @@ public class CommandsImpl implements Commands {
         }else{
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void wikiResearch(GuildMessageReceivedEvent event){
+        // .wiki -- <query>
+        final String DOMAIN_IT = "it.wikipedia.org";
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        Wiki wiki = new Wiki.Builder().withDomain("it.wikipedia.org").build();
+        ArrayList<String> results = wiki.search(params[1],1);
+        if(results.size() == 0){
+            event.getChannel().sendMessage("Nessun Risultato trovato").queue();
+        }else{
+            if(results.size() > 1){
+                StringBuilder builder = new StringBuilder();
+                builder.append("È stato trovato più di un risultato\n");
+                for(String title: results){
+                    builder.append(title + "\n");
+                }
+                event.getChannel().sendMessage(builder.toString()).queue();
+            }else{
+                String extract = wiki.getTextExtract(results.get(0));
+                String URL = "https://" + DOMAIN_IT + "/wiki/" + wiki.search(params[1],1).get(0).replace(" ", "_");
+                event.getChannel().sendMessage(URL + "\n" + extract.substring(0, extract.length() > 1000?1000:extract.length() - 1) + "...").queue();
+            }
         }
     }
 }
