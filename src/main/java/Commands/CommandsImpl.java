@@ -18,6 +18,7 @@ import java.awt.*;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
+import java.util.Random;
 
 public class CommandsImpl implements Commands {
 
@@ -442,6 +443,17 @@ public class CommandsImpl implements Commands {
         }else{
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void coinToss(GuildMessageReceivedEvent event){
+        Random rnumber = new Random();
+        int extracted = rnumber.nextInt(2);
+        if(extracted == 0){
+            event.getChannel().sendMessage("È uscita: Testa").queue();
+        }else{
+            event.getChannel().sendMessage("È uscita: Croce").queue();
         }
     }
 }
