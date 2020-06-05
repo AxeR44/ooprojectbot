@@ -106,6 +106,9 @@ public class Listener extends ListenerAdapter {
                     case "removeTelegram":
                         commands.removeTelegram(event);
                         break;
+                    case "report":
+                        commands.reportUser(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);
