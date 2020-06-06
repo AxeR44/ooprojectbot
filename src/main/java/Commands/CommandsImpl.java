@@ -482,9 +482,14 @@ public class CommandsImpl implements Commands {
                             t.schedule(new TimerTask() {
                                 @Override
                                 public void run() {
-                                    event.getGuild().removeRoleFromMember(member,role).queue(success ->{
-                                        event.getGuild().getDefaultChannel().sendMessage(params1[1] + " is one of us again!").queue();
-                                    });
+                                    if(member.getRoles().contains(role)){
+                                        event.getGuild().removeRoleFromMember(member,role).queue(success ->{
+                                            event.getGuild().getDefaultChannel().sendMessage(params1[1] + " is one of us again!").queue();
+                                        },error ->{
+                                        });
+                                    }else{
+                                        System.out.println("Failed");
+                                    }
                                 }
                             },Long.parseLong(params[2]) * 1000);
                         }
