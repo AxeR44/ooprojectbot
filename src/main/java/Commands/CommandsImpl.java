@@ -7,6 +7,7 @@ import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -18,6 +19,7 @@ import java.awt.*;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
+import java.util.Timer;
 
 public class CommandsImpl implements Commands {
 
@@ -84,9 +86,9 @@ public class CommandsImpl implements Commands {
         u.openPrivateChannel().queue(privateChannel -> {
             privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
                     .queue(message -> {
-                            event.getMessage().addReaction(TICK).queue();
-                        }, error ->{
-                            event.getMessage().addReaction(CROSS).queue();
+                        event.getMessage().addReaction(TICK).queue();
+                    }, error -> {
+                        event.getMessage().addReaction(CROSS).queue();
                     });
         });
     }
@@ -278,11 +280,11 @@ public class CommandsImpl implements Commands {
             if (msg[1].startsWith("<@!") && msg[1].endsWith(">")) {
                 if (userID.equals(event.getGuild().getOwnerId())) {
                     event.getChannel().sendMessage("Can't kick owner").queue();
-                }else if(userID.equals(event.getGuild().getSelfMember().getId())){
+                } else if (userID.equals(event.getGuild().getSelfMember().getId())) {
                     event.getChannel().sendMessage("Can't kick SaaSBot").queue();
-                }else if(userID.equals(event.getMessage().getAuthor().getId())){
+                } else if (userID.equals(event.getMessage().getAuthor().getId())) {
                     event.getChannel().sendMessage(msg[1] + " Why would you like to kick yourself out of this server?\nPRO TIP: right click on server icon->Leave Server").queue();
-                }else {
+                } else {
                     if (event.getGuild().getMemberById(userID) != null) {
                         System.out.println(userID);
                         String msgID = event.getChannel().sendMessage("@everyone\nVoting to kick" + msg[1] + ": 30 sec. remaining").complete().getId();
@@ -300,7 +302,7 @@ public class CommandsImpl implements Commands {
                                     final Integer crossCount = cnt.get(CROSS);
                                     event.getChannel().deleteMessageById(msgID).queue();
                                     if (cnt.get(TICK) > quorum) {
-                                        event.getGuild().kick(userID).queue(success->{
+                                        event.getGuild().kick(userID).queue(success -> {
                                             event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                         });
                                     } else {
@@ -312,11 +314,11 @@ public class CommandsImpl implements Commands {
                                 }
                             }
                         }, 0, 1000);
-                    }else{
+                    } else {
                         event.getChannel().sendMessage(msg[1] + " is not a valid username or the user is not in this server").queue();
                     }
                 }
-            }else{
+            } else {
                 event.getChannel().sendMessage(msg[1] + " is not a valid username").queue();
             }
         }
@@ -334,7 +336,7 @@ public class CommandsImpl implements Commands {
             message.getAuthor().openPrivateChannel().queue(privateChannel -> {
                 privateChannel.sendMessage("Survey opened\n" + params[0] + "\nID: " + event.getMessage().getId() + "/" + surveyID).queue();
             });
-            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage ->{
+            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage -> {
                 switch (params[1]) {
                     case "YesNo":
                         surveyMessage.addReaction(TICK).queue();
@@ -342,7 +344,7 @@ public class CommandsImpl implements Commands {
                         break;
                     case "custom":
                         String[] emotes = params[2].split(" ");
-                        for(String emote : emotes){
+                        for (String emote : emotes) {
                             surveyMessage.addReaction(emote).queue();
                         }
                         //event.getChannel().sendMessage("Not implemented yet.").queue();
@@ -356,32 +358,31 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void endSurvey(GuildMessageReceivedEvent event){
+    public void endSurvey(GuildMessageReceivedEvent event) {
         String[] params = event.getMessage().getContentRaw().split(" ");
-        if(params.length != 2) {
+        if (params.length != 2) {
             event.getChannel().sendMessage("Numero parametri invalido").queue();
-        }
-        else{
+        } else {
             try {
                 String[] ids = params[1].split("/");
                 Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
                 String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
-                if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
-                    HashMap<String,Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
+                if (surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
+                    HashMap<String, Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
                             StringBuilder sBuilder = new StringBuilder();
-                            sBuilder.append("@everyone Survey Ended :\n" + question + "" );
+                            sBuilder.append("@everyone Survey Ended :\n" + question + "");
                             for (String k : count.keySet()) {
                                 sBuilder.append("\n" + k + ": " + count.get(k) + " Users");
                             }
                             event.getChannel().sendMessage(sBuilder.toString()).queue();
                         });
                     });
-                }else{
+                } else {
                     event.getChannel().sendMessage("You can't end a survey you didn't create").queue();
                 }
-            }catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 event.getChannel().sendMessage("Survey ID not valid").queue();
             }
         }
@@ -412,14 +413,14 @@ public class CommandsImpl implements Commands {
             } catch (IndexOutOfBoundsException e) {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
-        }else {
+        } else {
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può aggiungere gruppi").queue();
         }
     }
 
     @Override
-    public void removeTelegram(GuildMessageReceivedEvent event){
+    public void removeTelegram(GuildMessageReceivedEvent event) {
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -428,7 +429,7 @@ public class CommandsImpl implements Commands {
                 isAuthorized = true;
             }
         }
-        if(isAuthorized) {
+        if (isAuthorized) {
             try {
                 String param = event.getMessage().getContentRaw().substring(16);
                 if (tNotifier.removeChannel(event.getGuild().getId(), param)) {
@@ -439,9 +440,59 @@ public class CommandsImpl implements Commands {
             } catch (IndexOutOfBoundsException e) {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
-        }else{
+        } else {
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void softBan(GuildMessageReceivedEvent event) {
+        // .softban @<nome> -- <reason> -- <time>
+        // .softban @RockyTeck -- è sempre colpa tua -- 30
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        final Role role;
+        if (event.getMessage().getMember().isOwner()) {
+            if (params.length + params1.length - 1 != 4) {
+                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            } else {
+                final String userID = params1[1].substring(3, params1[1].length() - 1);
+                if (params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                    if (userID.equals(event.getGuild().getOwnerId())) {
+                        event.getChannel().sendMessage("Can't softban the owner").queue();
+                    } else if (userID.equals(event.getGuild().getSelfMember().getId())) {
+                        event.getChannel().sendMessage("Can't softban SaaSBot").queue();
+                    }else{
+                        Member member = event.getGuild().getMemberById(userID);
+                        List<Role> roles = event.getGuild().getRolesByName("Softbanned", true);
+                        if(roles.size() == 0){
+                            role = event.getGuild().createRole().setName("Softbanned")
+                                    .setPermissions(Permission.MESSAGE_HISTORY, Permission.MESSAGE_READ)
+                                    .setHoisted(true)
+                                    .setColor(Color.MAGENTA)
+                                    .complete();
+                        }else{
+                            role = roles.get(0);
+                        }
+                        if(!member.getRoles().contains(role)){
+                            event.getChannel().sendMessage(params1[1] + " has been softbanned for the reason: " + params[1] + ", for " + params[2] + " seconds.").queue();
+                            event.getGuild().addRoleToMember(member,role).queue();
+                            final Timer t = new Timer();
+                            t.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    event.getGuild().removeRoleFromMember(member,role).queue(success ->{
+                                        event.getGuild().getDefaultChannel().sendMessage(params1[1] + " is one of us again!").queue();
+                                    });
+                                }
+                            },Long.parseLong(params[2]) * 1000);
+                        }
+                    }
+                }
+            }
+        }else{
+            event.getChannel().sendMessage("Solo l'owner può softbannare un utente").queue();
         }
     }
 }
