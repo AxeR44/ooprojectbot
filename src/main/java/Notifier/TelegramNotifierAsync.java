@@ -44,44 +44,56 @@ public class TelegramNotifierAsync extends TelegramLongPollingBot{
             if(messageText.startsWith("/sendDiscord ")) {
                 String[] args = messageText.substring(13).split(" -- "); // args[0]: message args[1]: guildName
                 User u = m.getFrom();
-                TelegramWrapper wrapper = chList.getWrapperFromGuildName(args[1]);
-                if (wrapper != null) {
-                    if (wrapper.hasChannelID(m.getChatId().toString())) {
-                        JDA jda = ProvaBot.getJda();
-                        jda.getGuildById(wrapper.getGuildID())
-                                .getDefaultChannel()
-                                .sendMessage("Telegram User " + u.getUserName() + " Wrote " + args[0])
-                                .queue(success -> {
-                                    sendMessage.setChatId(m.getChatId())
-                                            .setText("Done")
-                                    .setReplyToMessageId(m.getMessageId());
-                                    try{
-                                        execute(sendMessage);
-                                    }catch(TelegramApiException e){
-                                        e.printStackTrace();
-                                    }
-                                }, error ->{
-                                    sendMessage.setChatId(m.getChatId())
-                                            .setText("Error")
-                                            .setReplyToMessageId(m.getMessageId());
-                                    try{
-                                        execute(sendMessage);
-                                    }catch(TelegramApiException e){
-                                        e.printStackTrace();
-                                    }
-                                });
-                        return;
+                try {
+                    TelegramWrapper wrapper = chList.getWrapperFromGuildName(args[1]);
+                    if (wrapper != null) {
+                        if (wrapper.hasChannelID(m.getChatId().toString())) {
+                            JDA jda = ProvaBot.getJda();
+                            jda.getGuildById(wrapper.getGuildID())
+                                    .getDefaultChannel()
+                                    .sendMessage("Telegram User " + u.getUserName() + " Wrote " + args[0])
+                                    .queue(success -> {
+                                        sendMessage.setChatId(m.getChatId())
+                                                .setText("Done")
+                                                .setReplyToMessageId(m.getMessageId());
+                                        try {
+                                            execute(sendMessage);
+                                        } catch (TelegramApiException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }, error -> {
+                                        sendMessage.setChatId(m.getChatId())
+                                                .setText("Error")
+                                                .setReplyToMessageId(m.getMessageId());
+                                        try {
+                                            execute(sendMessage);
+                                        } catch (TelegramApiException e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
+                            return;
+                        }
+                    }
+                    else{
+                        sendMessage.setChatId(m.getChatId())
+                                .setText("Error")
+                                .setReplyToMessageId(m.getMessageId());
+                        try {
+                            execute(sendMessage);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }catch(ArrayIndexOutOfBoundsException e){
+                    sendMessage.setChatId(m.getChatId())
+                            .setText("Not enough parameters")
+                            .setReplyToMessageId(m.getMessageId());
+                    try{
+                        execute(sendMessage);
+                    }catch(TelegramApiException ex){
+                        ex.printStackTrace();
                     }
                 }
-
-            }
-            sendMessage.setChatId(m.getChatId())
-                    .setText("Error")
-                    .setReplyToMessageId(m.getMessageId());
-            try{
-                execute(sendMessage);
-            }catch(TelegramApiException e){
-                e.printStackTrace();
             }
         }
     }
