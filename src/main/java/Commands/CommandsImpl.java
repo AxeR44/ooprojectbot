@@ -45,10 +45,9 @@ public class CommandsImpl implements Commands {
         help.setTitle("SaaSBot Help:");
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
-                ".invite: genera un link di invito al server\n" +
                 ".info: mostra le info di SaaSBot\n" +
-                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
-                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                "-----MODERAZIONE-----\n\n" +
+                ".invite: genera un link di invito al server\n" +
                 "-----COMANDI MULTIMEDIALI-----\n\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -56,11 +55,17 @@ public class CommandsImpl implements Commands {
                 ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue' per vedere l'elenco dei brani in coda\n" +
                 ".leave: abbandona il canale vocale\n" +
                 "-----UTILITY-----\n" +
+                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
+                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
+                ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
                 ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
                 ".votekick @<username>: espelle un membro dal server\n" +
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
-                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato");
+                ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
+                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
+                ".coinToss: lancia una moneta");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
