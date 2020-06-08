@@ -11,10 +11,12 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 
 import java.awt.*;
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
@@ -462,13 +464,25 @@ public class CommandsImpl implements Commands {
                 }else{
                     User owner = event.getGuild().getOwner().getUser();
                     owner.openPrivateChannel().queue(privateChannel ->{
-                        privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
-                                .queue(success ->{
-                                    event.getMessage().delete().queue();
-                                },error ->{
-                                    event.getMessage().delete().queue();
-                                    event.getChannel().sendMessage("Error").queue();
-                                });
+                        List<Message.Attachment> attachments = event.getMessage().getAttachments();
+                        if(attachments.size() > 0) {
+                            Message.Attachment a = attachments.get(0);
+                            if (a.isImage()) {
+                                try {
+                                    InputStream i = a.retrieveInputStream().get();
+                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                            .addFile(i, "reportAttachment.jpg", new AttachmentOption[]{})
+                                            .queue(success -> {
+                                                event.getMessage().delete().queue();
+                                            }, error -> {
+                                                event.getMessage().delete().queue();
+                                                event.getChannel().sendMessage("Error").queue();
+                                            });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                     });
                 }
             }
