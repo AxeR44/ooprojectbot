@@ -50,7 +50,7 @@ public class TelegramNotifierAsync extends TelegramLongPollingBot{
                         JDA jda = ProvaBot.getJda();
                         jda.getGuildById(wrapper.getGuildID())
                                 .getDefaultChannel()
-                                .sendMessage("Telegram User " + u.getUserName() + "Wrote " + args[0])
+                                .sendMessage("Telegram User " + u.getUserName() + " Wrote " + args[0])
                                 .queue(success -> {
                                     sendMessage.setChatId(m.getChatId())
                                             .setText("Done")
