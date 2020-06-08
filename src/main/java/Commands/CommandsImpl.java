@@ -48,6 +48,7 @@ public class CommandsImpl implements Commands {
                 ".info: mostra le info di SaaSBot\n" +
                 "-----MODERAZIONE-----\n\n" +
                 ".invite: genera un link di invito al server\n" +
+                ".votekick @<username>: espelle un membro dal server\n" +
                 "-----COMANDI MULTIMEDIALI-----\n\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -61,7 +62,6 @@ public class CommandsImpl implements Commands {
                 ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
                 ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
-                ".votekick @<username>: espelle un membro dal server\n" +
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
                 ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
                 ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
