@@ -450,11 +450,12 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void wikiResearch(GuildMessageReceivedEvent event){
-        // .wiki -- <query>
+        // .wiki <query>
         final String DOMAIN_IT = "it.wikipedia.org";
-        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String query = event.getMessage().getContentRaw().substring(6);
+        //String[] params = event.getMessage().getContentRaw().split(" -- ");
         Wiki wiki = new Wiki.Builder().withDomain("it.wikipedia.org").build();
-        ArrayList<String> results = wiki.search(params[1],1);
+        ArrayList<String> results = wiki.search(query,1);
         if(results.size() == 0){
             event.getChannel().sendMessage("Nessun Risultato trovato").queue();
         }else{
@@ -467,8 +468,12 @@ public class CommandsImpl implements Commands {
                 event.getChannel().sendMessage(builder.toString()).queue();
             }else{
                 String extract = wiki.getTextExtract(results.get(0));
-                String URL = "https://" + DOMAIN_IT + "/wiki/" + wiki.search(params[1],1).get(0).replace(" ", "_");
-                event.getChannel().sendMessage(URL + "\n" + extract.substring(0, extract.length() > 1000?1000:extract.length() - 1) + "...").queue();
+                String URL = "https://" + DOMAIN_IT + "/wiki/" + wiki.search(query, 1).get(0).replace(" ", "_");
+                try {
+                    event.getChannel().sendMessage(URL + "\n" + extract.substring(0, extract.length() > 1000 ? 1000 : extract.length() - 1) + "...").queue();
+                }catch(IndexOutOfBoundsException e){
+                    event.getChannel().sendMessage("Impossibile visualizzare l'estratto del testo. L'url della pagina è: " + URL).queue();
+                }
             }
         }
     }
