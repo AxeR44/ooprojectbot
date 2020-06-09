@@ -18,6 +18,7 @@ import java.awt.*;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
+import java.util.Random;
 
 public class CommandsImpl implements Commands {
 
@@ -43,10 +44,10 @@ public class CommandsImpl implements Commands {
         help.setTitle("SaaSBot Help:");
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
-                ".invite: genera un link di invito al server\n" +
                 ".info: mostra le info di SaaSBot\n" +
-                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
-                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                "-----MODERAZIONE-----\n\n" +
+                ".invite: genera un link di invito al server\n" +
+                ".votekick @<username>: espelle un membro dal server\n" +
                 "-----COMANDI MULTIMEDIALI-----\n\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -54,11 +55,16 @@ public class CommandsImpl implements Commands {
                 ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue' per vedere l'elenco dei brani in coda\n" +
                 ".leave: abbandona il canale vocale\n" +
                 "-----UTILITY-----\n" +
+                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
+                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
+                ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
                 ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
-                ".votekick @<username>: espelle un membro dal server\n" +
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
-                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato");
+                ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
+                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
+                ".coinToss: lancia una moneta");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
@@ -294,14 +300,16 @@ public class CommandsImpl implements Commands {
                             @Override
                             public void run() {
                                 if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
-                                    Integer[] cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    HashMap<String, Integer> cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    final Integer tickCount = cnt.get(TICK);
+                                    final Integer crossCount = cnt.get(CROSS);
                                     event.getChannel().deleteMessageById(msgID).queue();
-                                    if (cnt[0] > quorum) {
+                                    if (cnt.get(TICK) > quorum) {
                                         event.getGuild().kick(userID).queue(success->{
-                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                         });
                                     } else {
-                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + cnt[0] + " Voted for kick\n" + cnt[1] + " Voted not to kick").queue();
+                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                     }
                                     t.cancel();
                                 } else {
@@ -338,7 +346,11 @@ public class CommandsImpl implements Commands {
                         surveyMessage.addReaction(CROSS).queue();
                         break;
                     case "custom":
-                        event.getChannel().sendMessage("Not implemented yet.").queue();
+                        String[] emotes = params[2].split(" ");
+                        for(String emote : emotes){
+                            surveyMessage.addReaction(emote).queue();
+                        }
+                        //event.getChannel().sendMessage("Not implemented yet.").queue();
                         break;
                     default:
                         event.getChannel().sendMessage("Survey type not valid").queue();
@@ -360,10 +372,15 @@ public class CommandsImpl implements Commands {
                 Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
                 String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
                 if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
-                    Integer[] count = MessageReactionHandler.getReactionsCount(ids[1]);
+                    HashMap<String,Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
-                            event.getChannel().sendMessage("@everyone Survey Ended :\n" + question + "\n" + TICK + ": " + count[0] + " Users\n" + CROSS + ": " + count[1] + " Users").queue();
+                            StringBuilder sBuilder = new StringBuilder();
+                            sBuilder.append("@everyone Survey Ended :\n" + question + "" );
+                            for (String k : count.keySet()) {
+                                sBuilder.append("\n" + k + ": " + count.get(k) + " Users");
+                            }
+                            event.getChannel().sendMessage(sBuilder.toString()).queue();
                         });
                     });
                 }else{
@@ -430,6 +447,17 @@ public class CommandsImpl implements Commands {
         }else{
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void coinToss(GuildMessageReceivedEvent event){
+        Random rnumber = new Random();
+        int extracted = rnumber.nextInt(2);
+        if(extracted == 0){
+            event.getChannel().sendMessage("È uscita: Testa").queue();
+        }else{
+            event.getChannel().sendMessage("È uscita: Croce").queue();
         }
     }
 }
