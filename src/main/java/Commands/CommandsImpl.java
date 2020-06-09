@@ -22,7 +22,6 @@ import java.util.List;
 public class CommandsImpl implements Commands {
 
     private telegramNotifier tNotifier;
-    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -122,6 +121,7 @@ public class CommandsImpl implements Commands {
         Guild guild = m.getGuild();
         GuildVoiceState state = m.getVoiceState();
         VoiceChannel channel = state.getChannel();
+        AudioManager manager = guild.getAudioManager();
         if (Url == null) {
             if (channel != null) {
                 if (manager.isConnected()) {
@@ -133,7 +133,6 @@ public class CommandsImpl implements Commands {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
-            this.manager = guild.getAudioManager();
             manager.openAudioConnection(channel);
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
