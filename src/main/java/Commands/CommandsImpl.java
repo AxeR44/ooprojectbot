@@ -444,4 +444,32 @@ public class CommandsImpl implements Commands {
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
         }
     }
+
+    @Override
+    public void reminder(GuildMessageReceivedEvent event){
+        // .reminder <content> -- <time>
+        // .reminder Kickare Rocco -- 30
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String content = params[0].substring(10);
+        if(params.length != 2) {
+            event.getChannel().sendMessage("Numero parametri invalido").queue();
+        }else{
+            User u = event.getMessage().getAuthor();
+            String sender = event.getMessage().getAuthor().getName();
+            event.getMessage().delete().queue();
+            event.getChannel().sendMessage("Ok " + sender + ", te lo ricorderò tra " + params[1] + " secondi").complete();
+            final Timer t = new Timer();
+            t.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    u.openPrivateChannel().queue(privateChannel -> {
+                    privateChannel.sendMessage("Remember: " + content).queue(
+                            error ->{
+
+                            });
+                    });
+                }
+            },Long.parseLong(params[1]) * 1000);
+        }
+    }
 }
