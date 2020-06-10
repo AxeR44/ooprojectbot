@@ -11,10 +11,12 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 
 import java.awt.*;
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
@@ -89,9 +91,9 @@ public class CommandsImpl implements Commands {
         u.openPrivateChannel().queue(privateChannel -> {
             privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
                     .queue(message -> {
-                            event.getMessage().addReaction(TICK).queue();
-                        }, error ->{
-                            event.getMessage().addReaction(CROSS).queue();
+                        event.getMessage().addReaction(TICK).queue();
+                    }, error ->{
+                        event.getMessage().addReaction(CROSS).queue();
                     });
         });
     }
@@ -458,6 +460,49 @@ public class CommandsImpl implements Commands {
             event.getChannel().sendMessage("È uscita: Testa").queue();
         }else{
             event.getChannel().sendMessage("È uscita: Croce").queue();
+        }
+    }
+
+    @Override
+    public void reportUser(GuildMessageReceivedEvent event) {
+        // .report @<nome> -- <reason>
+        // .report @RockyTeck -- è sempre colpa sua.
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        if (params.length + params1.length - 1 != 3) {
+            event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+        }else{
+            final String userID = params1[1].substring(3, params1[1].length() - 1);
+            if(params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                if(userID.equals(event.getGuild().getSelfMember().getId())) {
+                    event.getChannel().sendMessage("Can't report SaaSBot").queue();
+                }else if(userID.equals(event.getMessage().getAuthor().getId())) {
+                    event.getChannel().sendMessage("You can't report yourself").queue();
+                }else{
+                    User owner = event.getGuild().getOwner().getUser();
+                    owner.openPrivateChannel().queue(privateChannel ->{
+                        List<Message.Attachment> attachments = event.getMessage().getAttachments();
+                        if(attachments.size() > 0) {
+                            Message.Attachment a = attachments.get(0);
+                            if (a.isImage()) {
+                                try {
+                                    InputStream i = a.retrieveInputStream().get();
+                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                            .addFile(i, "reportAttachment.jpg", new AttachmentOption[]{})
+                                            .queue(success -> {
+                                                event.getMessage().delete().queue();
+                                            }, error -> {
+                                                event.getMessage().delete().queue();
+                                                event.getChannel().sendMessage("Error").queue();
+                                            });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
         }
     }
 }

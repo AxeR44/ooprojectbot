@@ -109,6 +109,9 @@ public class Listener extends ListenerAdapter {
                     case "coinToss":
                         commands.coinToss(event);
                         break;
+                    case "report":
+                        commands.reportUser(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);
