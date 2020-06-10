@@ -23,4 +23,5 @@ public interface Commands {
     void addTelegram(GuildMessageReceivedEvent event);
     void removeTelegram(GuildMessageReceivedEvent event);
     void coinToss(GuildMessageReceivedEvent event);
+    void lyrics(GuildMessageReceivedEvent event);
 }

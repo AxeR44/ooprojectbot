@@ -67,4 +67,8 @@ public class TrackScheduler extends AudioEventAdapter {
         queue.remove(tracksInQueue.get(index));
         updateHashMap();
     }
+
+    public AudioTrack playingTrack(){
+        return player.getPlayingTrack();
+    }
 }

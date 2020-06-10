@@ -5,7 +5,10 @@ import CommandsUtils.Translator;
 import Notifier.telegramNotifier;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
+import com.jagrosh.jlyrics.Lyrics;
+import com.jagrosh.jlyrics.LyricsClient;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.typesafe.config.ConfigException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -19,6 +22,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 public class CommandsImpl implements Commands {
 
@@ -459,5 +463,41 @@ public class CommandsImpl implements Commands {
         }else{
             event.getChannel().sendMessage("È uscita: Croce").queue();
         }
+    }
+
+    @Override
+    public void lyrics(GuildMessageReceivedEvent event){
+        // .lyrics faded
+        String[] sources = new String[]{"A-Z Lyrics","Genius","MusixMatch","LyricsFreak"};
+        String song = null;
+        EmbedBuilder result = new EmbedBuilder();
+        int params = event.getMessage().getContentRaw().split(" ").length;
+        try {
+            if(params == 1){
+                final AudioTrack track = player.getPlayingTrack(event.getChannel());
+                song = track.getInfo().title;
+            }else{
+                song = event.getMessage().getContentRaw().substring(8);
+            }
+            LyricsClient client = new LyricsClient();
+            Lyrics lyrics = null;
+            int i = 0;
+            while(lyrics == null && i < sources.length) {
+                lyrics = client.getLyrics(song,sources[i]).get();
+                ++i;
+            }
+            result.setTitle(lyrics.getTitle());
+            String content = lyrics.getContent();
+            result.setDescription(content.substring(0,content.length() > 2047?2047:content.length()));
+            result.setColor(Color.blue);
+            result.setFooter(lyrics.getURL());
+        } catch (InterruptedException | ExecutionException e) {
+            result.setDescription("Si è verificato un errore");
+            result.setColor(Color.RED);
+        }catch(NullPointerException e){
+            result.setDescription("Nessun testo trovato");
+            result.setColor(Color.RED);
+        }
+        event.getChannel().sendMessage(result.build()).queue();
     }
 }
