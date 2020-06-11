@@ -106,6 +106,12 @@ public class Listener extends ListenerAdapter {
                     case "removeTelegram":
                         commands.removeTelegram(event);
                         break;
+                    case "coinToss":
+                        commands.coinToss(event);
+                        break;
+                    case "report":
+                        commands.reportUser(event);
+                        break;
                     case "softban":
                         commands.softBan(event);
                         break;

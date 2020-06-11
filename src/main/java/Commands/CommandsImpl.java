@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Timer;
 
 public class CommandsImpl implements Commands {
+
     private telegramNotifier tNotifier;
     private final Player player;
     private final RandomJokes jokesGenerator;
@@ -506,7 +507,7 @@ public class CommandsImpl implements Commands {
             }
         }
     }
-    
+
     @Override
     public void softBan(GuildMessageReceivedEvent event) {
         // .softban @<nome> -- <reason> -- <time>
