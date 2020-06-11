@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 
@@ -24,7 +25,6 @@ import java.util.Timer;
 public class CommandsImpl implements Commands {
 
     private telegramNotifier tNotifier;
-    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -46,10 +46,10 @@ public class CommandsImpl implements Commands {
         help.setTitle("SaaSBot Help:");
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
-                ".invite: genera un link di invito al server\n" +
                 ".info: mostra le info di SaaSBot\n" +
-                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
-                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                "-----MODERAZIONE-----\n\n" +
+                ".invite: genera un link di invito al server\n" +
+                ".votekick @<username>: espelle un membro dal server\n" +
                 "-----COMANDI MULTIMEDIALI-----\n\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -57,11 +57,16 @@ public class CommandsImpl implements Commands {
                 ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue' per vedere l'elenco dei brani in coda\n" +
                 ".leave: abbandona il canale vocale\n" +
                 "-----UTILITY-----\n" +
+                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
+                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
+                ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
                 ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
-                ".votekick @<username>: espelle un membro dal server\n" +
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
-                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato");
+                ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
+                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
+                ".coinToss: lancia una moneta");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
@@ -87,7 +92,7 @@ public class CommandsImpl implements Commands {
             privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
                     .queue(message -> {
                         event.getMessage().addReaction(TICK).queue();
-                    }, error -> {
+                    }, error ->{
                         event.getMessage().addReaction(CROSS).queue();
                     });
         });
@@ -124,6 +129,7 @@ public class CommandsImpl implements Commands {
         Guild guild = m.getGuild();
         GuildVoiceState state = m.getVoiceState();
         VoiceChannel channel = state.getChannel();
+        AudioManager manager = guild.getAudioManager();
         if (Url == null) {
             if (channel != null) {
                 if (manager.isConnected()) {
@@ -135,7 +141,6 @@ public class CommandsImpl implements Commands {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
-            this.manager = guild.getAudioManager();
             manager.openAudioConnection(channel);
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
@@ -280,11 +285,11 @@ public class CommandsImpl implements Commands {
             if (msg[1].startsWith("<@!") && msg[1].endsWith(">")) {
                 if (userID.equals(event.getGuild().getOwnerId())) {
                     event.getChannel().sendMessage("Can't kick owner").queue();
-                } else if (userID.equals(event.getGuild().getSelfMember().getId())) {
+                }else if(userID.equals(event.getGuild().getSelfMember().getId())){
                     event.getChannel().sendMessage("Can't kick SaaSBot").queue();
-                } else if (userID.equals(event.getMessage().getAuthor().getId())) {
+                }else if(userID.equals(event.getMessage().getAuthor().getId())){
                     event.getChannel().sendMessage(msg[1] + " Why would you like to kick yourself out of this server?\nPRO TIP: right click on server icon->Leave Server").queue();
-                } else {
+                }else {
                     if (event.getGuild().getMemberById(userID) != null) {
                         System.out.println(userID);
                         String msgID = event.getChannel().sendMessage("@everyone\nVoting to kick" + msg[1] + ": 30 sec. remaining").complete().getId();
@@ -302,7 +307,7 @@ public class CommandsImpl implements Commands {
                                     final Integer crossCount = cnt.get(CROSS);
                                     event.getChannel().deleteMessageById(msgID).queue();
                                     if (cnt.get(TICK) > quorum) {
-                                        event.getGuild().kick(userID).queue(success -> {
+                                        event.getGuild().kick(userID).queue(success->{
                                             event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
                                         });
                                     } else {
@@ -314,11 +319,11 @@ public class CommandsImpl implements Commands {
                                 }
                             }
                         }, 0, 1000);
-                    } else {
+                    }else{
                         event.getChannel().sendMessage(msg[1] + " is not a valid username or the user is not in this server").queue();
                     }
                 }
-            } else {
+            }else{
                 event.getChannel().sendMessage(msg[1] + " is not a valid username").queue();
             }
         }
@@ -336,7 +341,7 @@ public class CommandsImpl implements Commands {
             message.getAuthor().openPrivateChannel().queue(privateChannel -> {
                 privateChannel.sendMessage("Survey opened\n" + params[0] + "\nID: " + event.getMessage().getId() + "/" + surveyID).queue();
             });
-            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage -> {
+            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage ->{
                 switch (params[1]) {
                     case "YesNo":
                         surveyMessage.addReaction(TICK).queue();
@@ -344,7 +349,7 @@ public class CommandsImpl implements Commands {
                         break;
                     case "custom":
                         String[] emotes = params[2].split(" ");
-                        for (String emote : emotes) {
+                        for(String emote : emotes){
                             surveyMessage.addReaction(emote).queue();
                         }
                         //event.getChannel().sendMessage("Not implemented yet.").queue();
@@ -358,31 +363,32 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void endSurvey(GuildMessageReceivedEvent event) {
+    public void endSurvey(GuildMessageReceivedEvent event){
         String[] params = event.getMessage().getContentRaw().split(" ");
-        if (params.length != 2) {
+        if(params.length != 2) {
             event.getChannel().sendMessage("Numero parametri invalido").queue();
-        } else {
+        }
+        else{
             try {
                 String[] ids = params[1].split("/");
                 Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
                 String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
-                if (surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
-                    HashMap<String, Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
+                if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
+                    HashMap<String,Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
                             StringBuilder sBuilder = new StringBuilder();
-                            sBuilder.append("@everyone Survey Ended :\n" + question + "");
+                            sBuilder.append("@everyone Survey Ended :\n" + question + "" );
                             for (String k : count.keySet()) {
                                 sBuilder.append("\n" + k + ": " + count.get(k) + " Users");
                             }
                             event.getChannel().sendMessage(sBuilder.toString()).queue();
                         });
                     });
-                } else {
+                }else{
                     event.getChannel().sendMessage("You can't end a survey you didn't create").queue();
                 }
-            } catch (NullPointerException e) {
+            }catch (NullPointerException e){
                 event.getChannel().sendMessage("Survey ID not valid").queue();
             }
         }
@@ -413,14 +419,14 @@ public class CommandsImpl implements Commands {
             } catch (IndexOutOfBoundsException e) {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
-        } else {
+        }else {
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può aggiungere gruppi").queue();
         }
     }
 
     @Override
-    public void removeTelegram(GuildMessageReceivedEvent event) {
+    public void removeTelegram(GuildMessageReceivedEvent event){
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -429,7 +435,7 @@ public class CommandsImpl implements Commands {
                 isAuthorized = true;
             }
         }
-        if (isAuthorized) {
+        if(isAuthorized) {
             try {
                 String param = event.getMessage().getContentRaw().substring(16);
                 if (tNotifier.removeChannel(event.getGuild().getId(), param)) {
@@ -440,9 +446,63 @@ public class CommandsImpl implements Commands {
             } catch (IndexOutOfBoundsException e) {
                 event.getChannel().sendMessage("Numero dei parametri invalido").queue();
             }
-        } else {
+        }else{
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void coinToss(GuildMessageReceivedEvent event){
+        Random rnumber = new Random();
+        int extracted = rnumber.nextInt(2);
+        if(extracted == 0){
+            event.getChannel().sendMessage("È uscita: Testa").queue();
+        }else{
+            event.getChannel().sendMessage("È uscita: Croce").queue();
+        }
+    }
+
+    @Override
+    public void reportUser(GuildMessageReceivedEvent event) {
+        // .report @<nome> -- <reason>
+        // .report @RockyTeck -- è sempre colpa sua.
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        if (params.length + params1.length - 1 != 3) {
+            event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+        }else{
+            final String userID = params1[1].substring(3, params1[1].length() - 1);
+            if(params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                if(userID.equals(event.getGuild().getSelfMember().getId())) {
+                    event.getChannel().sendMessage("Can't report SaaSBot").queue();
+                }else if(userID.equals(event.getMessage().getAuthor().getId())) {
+                    event.getChannel().sendMessage("You can't report yourself").queue();
+                }else{
+                    User owner = event.getGuild().getOwner().getUser();
+                    owner.openPrivateChannel().queue(privateChannel ->{
+                        List<Message.Attachment> attachments = event.getMessage().getAttachments();
+                        if(attachments.size() > 0) {
+                            Message.Attachment a = attachments.get(0);
+                            if (a.isImage()) {
+                                try {
+                                    InputStream i = a.retrieveInputStream().get();
+                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                            .addFile(i, "reportAttachment.jpg", new AttachmentOption[]{})
+                                            .queue(success -> {
+                                                event.getMessage().delete().queue();
+                                            }, error -> {
+                                                event.getMessage().delete().queue();
+                                                event.getChannel().sendMessage("Error").queue();
+                                            });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
         }
     }
 
