@@ -25,4 +25,5 @@ public interface Commands {
     void coinToss(GuildMessageReceivedEvent event);
     void reportUser(GuildMessageReceivedEvent event);
     void softBan(GuildMessageReceivedEvent event);
+    void wikiResearch(GuildMessageReceivedEvent event);
 }

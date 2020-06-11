@@ -115,6 +115,9 @@ public class Listener extends ListenerAdapter {
                     case "softban":
                         commands.softBan(event);
                         break;
+                    case "wiki":
+                        commands.wikiResearch(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

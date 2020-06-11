@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
+import org.fastily.jwiki.core.*;
 
 import java.awt.*;
 import java.io.File;
@@ -27,6 +28,7 @@ import java.util.Timer;
 public class CommandsImpl implements Commands {
 
     private telegramNotifier tNotifier;
+    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -143,6 +145,7 @@ public class CommandsImpl implements Commands {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
+            this.manager = guild.getAudioManager();
             manager.openAudioConnection(channel);
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
@@ -560,6 +563,36 @@ public class CommandsImpl implements Commands {
             }
         }else{
             event.getChannel().sendMessage("Solo l'owner può softbannare un utente").queue();
+        }
+    }
+
+    @Override
+    public void wikiResearch(GuildMessageReceivedEvent event){
+        // .wiki <query>
+        final String DOMAIN_IT = "it.wikipedia.org";
+        String query = event.getMessage().getContentRaw().substring(6);
+        //String[] params = event.getMessage().getContentRaw().split(" -- ");
+        Wiki wiki = new Wiki.Builder().withDomain("it.wikipedia.org").build();
+        ArrayList<String> results = wiki.search(query,1);
+        if(results.size() == 0){
+            event.getChannel().sendMessage("Nessun Risultato trovato").queue();
+        }else{
+            if(results.size() > 1){
+                StringBuilder builder = new StringBuilder();
+                builder.append("È stato trovato più di un risultato\n");
+                for(String title: results){
+                    builder.append(title + "\n");
+                }
+                event.getChannel().sendMessage(builder.toString()).queue();
+            }else{
+                String extract = wiki.getTextExtract(results.get(0));
+                String URL = "https://" + DOMAIN_IT + "/wiki/" + wiki.search(query, 1).get(0).replace(" ", "_");
+                try {
+                    event.getChannel().sendMessage(URL + "\n" + extract.substring(0, extract.length() > 1000 ? 1000 : extract.length() - 1) + "...").queue();
+                }catch(IndexOutOfBoundsException e){
+                    event.getChannel().sendMessage("Impossibile visualizzare l'estratto del testo. L'url della pagina è: " + URL).queue();
+                }
+            }
         }
     }
 }
