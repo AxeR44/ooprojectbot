@@ -118,6 +118,9 @@ public class Listener extends ListenerAdapter {
                     case "wiki":
                         commands.wikiResearch(event);
                         break;
+                    case "lyrics":
+                        commands.lyrics(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

@@ -26,4 +26,5 @@ public interface Commands {
     void reportUser(GuildMessageReceivedEvent event);
     void softBan(GuildMessageReceivedEvent event);
     void wikiResearch(GuildMessageReceivedEvent event);
+    void lyrics(GuildMessageReceivedEvent event);
 }

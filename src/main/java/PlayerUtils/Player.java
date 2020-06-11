@@ -102,4 +102,8 @@ public class Player{
         return musicManager.scheduler.getTracksInQueue();
     }
 
+    public AudioTrack getPlayingTrack(final TextChannel channel){
+        return getGuildAudioPlayer(channel.getGuild()).scheduler.playingTrack();
+    }
+
 }
