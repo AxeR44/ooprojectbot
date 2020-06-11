@@ -2,11 +2,10 @@ package Commands;
 
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
+import Lyrics.Lyrics;
 import Notifier.telegramNotifier;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
-import com.jagrosh.jlyrics.Lyrics;
-import com.jagrosh.jlyrics.LyricsClient;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.typesafe.config.ConfigException;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -16,6 +15,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
+import Lyrics.LyricsClient;
 
 import java.awt.*;
 import java.io.InputStream;
@@ -30,6 +30,7 @@ public class CommandsImpl implements Commands {
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
+    private final LyricsClient client;
     private final String TICK = "\u2705";
     private final String CROSS = "\u274C";
 
@@ -39,7 +40,7 @@ public class CommandsImpl implements Commands {
         player = new Player();
         jokesGenerator = new RandomJokes();
         langPrinter = new Translator();
-
+        client = new LyricsClient();
     }
 
     @Override
@@ -468,6 +469,7 @@ public class CommandsImpl implements Commands {
     @Override
     public void lyrics(GuildMessageReceivedEvent event){
         // .lyrics faded
+        //delting () and [] content
         String[] sources = new String[]{"A-Z Lyrics","Genius","MusixMatch","LyricsFreak"};
         String song = null;
         EmbedBuilder result = new EmbedBuilder();
@@ -479,23 +481,28 @@ public class CommandsImpl implements Commands {
             }else{
                 song = event.getMessage().getContentRaw().substring(8);
             }
-            LyricsClient client = new LyricsClient();
-            Lyrics lyrics = null;
-            int i = 0;
-            while(lyrics == null && i < sources.length) {
-                lyrics = client.getLyrics(song,sources[i]).get();
-                ++i;
-            }
+            Lyrics lyrics = client.getLyrics(song,"Genius").get();
             result.setTitle(lyrics.getTitle());
             String content = lyrics.getContent();
-            result.setDescription(content.substring(0,content.length() > 2047?2047:content.length()));
+            result.setDescription(content.substring(0, Math.min(2047, content.length())));
             result.setColor(Color.blue);
             result.setFooter(lyrics.getURL());
-        } catch (InterruptedException | ExecutionException e) {
+            result.setImage(lyrics.getImageURL());
+            result.addField("Disclaimer", params == 1 ?
+                    "Se il testo non è quello del brano in riproduzione prova a invocare manualmente il comando per indicare il titolo" :
+                    "Se il testo non è quello che stavi cercando prova a invocare nuovamente il comando indicando parole chiave che possono essere"+
+                    " d'aiuto per la ricerca (ad esempio l'artista)", false);
+        }catch (InterruptedException | ExecutionException e) {
             result.setDescription("Si è verificato un errore");
             result.setColor(Color.RED);
-        }catch(NullPointerException e){
-            result.setDescription("Nessun testo trovato");
+        }
+        catch(NullPointerException e){
+            StringBuilder builder = new StringBuilder();
+            builder.append("Nessun testo trovato.\nCiò potrebbe essere dovuto a una risposta vuota del server\nRiprova a invocare il comando");
+            if(params == 1){
+                builder.append(" .lyrics senza parametri oppure prova a indicare il titolo del brano");
+            }
+            result.setDescription(builder.toString());
             result.setColor(Color.RED);
         }
         event.getChannel().sendMessage(result.build()).queue();
