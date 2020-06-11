@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.AttachmentOption;
+import org.fastily.jwiki.core.Wiki;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 import Lyrics.LyricsClient;
