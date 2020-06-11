@@ -1,5 +1,9 @@
+package EventListener;
+
 import Commands.CommandsImpl;
 import Eventi.HiBotEvent;
+import Notifier.TelegramNotifierAsync;
+import Wrappers.ChannelList;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -9,9 +13,10 @@ public class Listener extends ListenerAdapter {
     private static CommandsImpl commands;
     private HiBotEvent evnt;
 
-    public Listener(){
-        this.commands = new CommandsImpl(new ProvaBot().getTelegramAPIK());
+    public Listener(ChannelList list, TelegramNotifierAsync tnAsync){
+        this.commands = new CommandsImpl(list, tnAsync);
         this.evnt = new HiBotEvent();
+
     }
 
     @Override
@@ -32,7 +37,7 @@ public class Listener extends ListenerAdapter {
                         break;
                     case "telegram":
                         try {
-                            if (commands.sendTelegram(args, event)) {
+                            if (commands.sendTelegram(event)) {
                                 event.getMessage().addReaction("\u2705").queue();
                             } else {
                                 event.getMessage().addReaction("\u274C").queue();

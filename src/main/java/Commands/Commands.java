@@ -7,7 +7,7 @@ public interface Commands {
     void ping(GuildMessageReceivedEvent event);
     void invite(GuildMessageReceivedEvent event);
     void sendInfo(GuildMessageReceivedEvent event);
-    boolean sendTelegram(String[] args, GuildMessageReceivedEvent event) throws Exception;
+    boolean sendTelegram(GuildMessageReceivedEvent event) throws Exception;
     void listChannels(GuildMessageReceivedEvent event);
     void play(GuildMessageReceivedEvent event, String Url, boolean hideNotification) throws NullPointerException;
     void skip(GuildMessageReceivedEvent event);
