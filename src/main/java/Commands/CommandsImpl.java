@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 public class CommandsImpl implements Commands {
 
     private telegramNotifier tNotifier;
+    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -639,5 +640,33 @@ public class CommandsImpl implements Commands {
             result.setColor(Color.RED);
         }
         event.getChannel().sendMessage(result.build()).queue();
+    }
+
+    @Override
+    public void reminder(GuildMessageReceivedEvent event){
+        // .reminder <content> -- <time>
+        // .reminder Kickare Rocco -- 30
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String content = params[0].substring(10);
+        if(params.length != 2) {
+            event.getChannel().sendMessage("Numero parametri invalido").queue();
+        }else{
+            User u = event.getMessage().getAuthor();
+            String sender = event.getMessage().getAuthor().getName();
+            event.getMessage().delete().queue();
+            event.getChannel().sendMessage("Ok " + sender + ", te lo ricorderò tra " + params[1] + " secondi").complete();
+            final Timer t = new Timer();
+            t.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    u.openPrivateChannel().queue(privateChannel -> {
+                    privateChannel.sendMessage("Remember: " + content).queue(
+                            error ->{
+
+                            });
+                    });
+                }
+            },Long.parseLong(params[1]) * 1000);
+        }
     }
 }
