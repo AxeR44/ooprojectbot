@@ -7,25 +7,27 @@ import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 import org.fastily.jwiki.core.*;
-import org.fastily.jwiki.dwrap.*;
-import org.fastily.jwiki.util.*;
 
 import java.awt.*;
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
+import java.util.Random;
+import java.util.Timer;
 
 public class CommandsImpl implements Commands {
 
     private telegramNotifier tNotifier;
-    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -47,10 +49,10 @@ public class CommandsImpl implements Commands {
         help.setTitle("SaaSBot Help:");
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
-                ".invite: genera un link di invito al server\n" +
                 ".info: mostra le info di SaaSBot\n" +
-                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
-                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                "-----MODERAZIONE-----\n\n" +
+                ".invite: genera un link di invito al server\n" +
+                ".votekick @<username>: espelle un membro dal server\n" +
                 "-----COMANDI MULTIMEDIALI-----\n\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -58,11 +60,16 @@ public class CommandsImpl implements Commands {
                 ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue' per vedere l'elenco dei brani in coda\n" +
                 ".leave: abbandona il canale vocale\n" +
                 "-----UTILITY-----\n" +
+                ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
+                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
+                ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
                 ".langlist: visualizza la lista di tutte le lingue supportate dal comando .translate\n" +
-                ".votekick @<username>: espelle un membro dal server\n" +
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
-                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato");
+                ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
+                ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
+                ".coinToss: lancia una moneta");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
@@ -87,9 +94,9 @@ public class CommandsImpl implements Commands {
         u.openPrivateChannel().queue(privateChannel -> {
             privateChannel.sendMessage(event.getGuild().getName() + " ticket.\nADMIT ONE\nlink: " + i.getUrl() + "\nThis invite will autodestroy in 24 hours")
                     .queue(message -> {
-                            event.getMessage().addReaction(TICK).queue();
-                        }, error ->{
-                            event.getMessage().addReaction(CROSS).queue();
+                        event.getMessage().addReaction(TICK).queue();
+                    }, error ->{
+                        event.getMessage().addReaction(CROSS).queue();
                     });
         });
     }
@@ -125,6 +132,7 @@ public class CommandsImpl implements Commands {
         Guild guild = m.getGuild();
         GuildVoiceState state = m.getVoiceState();
         VoiceChannel channel = state.getChannel();
+        AudioManager manager = guild.getAudioManager();
         if (Url == null) {
             if (channel != null) {
                 if (manager.isConnected()) {
@@ -136,7 +144,6 @@ public class CommandsImpl implements Commands {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
-            this.manager = guild.getAudioManager();
             manager.openAudioConnection(channel);
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
@@ -445,6 +452,115 @@ public class CommandsImpl implements Commands {
         }else{
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può rimuovere gruppi Telegram").queue();
+        }
+    }
+
+    @Override
+    public void coinToss(GuildMessageReceivedEvent event){
+        Random rnumber = new Random();
+        int extracted = rnumber.nextInt(2);
+        if(extracted == 0){
+            event.getChannel().sendMessage("È uscita: Testa").queue();
+        }else{
+            event.getChannel().sendMessage("È uscita: Croce").queue();
+        }
+    }
+
+    @Override
+    public void reportUser(GuildMessageReceivedEvent event) {
+        // .report @<nome> -- <reason>
+        // .report @RockyTeck -- è sempre colpa sua.
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        if (params.length + params1.length - 1 != 3) {
+            event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+        }else{
+            final String userID = params1[1].substring(3, params1[1].length() - 1);
+            if(params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                if(userID.equals(event.getGuild().getSelfMember().getId())) {
+                    event.getChannel().sendMessage("Can't report SaaSBot").queue();
+                }else if(userID.equals(event.getMessage().getAuthor().getId())) {
+                    event.getChannel().sendMessage("You can't report yourself").queue();
+                }else{
+                    User owner = event.getGuild().getOwner().getUser();
+                    owner.openPrivateChannel().queue(privateChannel ->{
+                        List<Message.Attachment> attachments = event.getMessage().getAttachments();
+                        if(attachments.size() > 0) {
+                            Message.Attachment a = attachments.get(0);
+                            if (a.isImage()) {
+                                try {
+                                    InputStream i = a.retrieveInputStream().get();
+                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                            .addFile(i, "reportAttachment.jpg", new AttachmentOption[]{})
+                                            .queue(success -> {
+                                                event.getMessage().delete().queue();
+                                            }, error -> {
+                                                event.getMessage().delete().queue();
+                                                event.getChannel().sendMessage("Error").queue();
+                                            });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public void softBan(GuildMessageReceivedEvent event) {
+        // .softban @<nome> -- <reason> -- <time>
+        // .softban @RockyTeck -- è sempre colpa tua -- 30
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        final Role role;
+        if (event.getMessage().getMember().isOwner()) {
+            if (params.length + params1.length - 1 != 4) {
+                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            } else {
+                final String userID = params1[1].substring(3, params1[1].length() - 1);
+                if (params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                    if (userID.equals(event.getGuild().getOwnerId())) {
+                        event.getChannel().sendMessage("Can't softban the owner").queue();
+                    } else if (userID.equals(event.getGuild().getSelfMember().getId())) {
+                        event.getChannel().sendMessage("Can't softban SaaSBot").queue();
+                    }else{
+                        Member member = event.getGuild().getMemberById(userID);
+                        List<Role> roles = event.getGuild().getRolesByName("Softbanned", true);
+                        if(roles.size() == 0){
+                            role = event.getGuild().createRole().setName("Softbanned")
+                                    .setPermissions(Permission.MESSAGE_HISTORY, Permission.MESSAGE_READ)
+                                    .setHoisted(true)
+                                    .setColor(Color.MAGENTA)
+                                    .complete();
+                        }else{
+                            role = roles.get(0);
+                        }
+                        if(!member.getRoles().contains(role)){
+                            event.getChannel().sendMessage(params1[1] + " has been softbanned for the reason: " + params[1] + ", for " + params[2] + " seconds.").queue();
+                            event.getGuild().addRoleToMember(member,role).queue();
+                            final Timer t = new Timer();
+                            t.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if(member.getRoles().contains(role)){
+                                        event.getGuild().removeRoleFromMember(member,role).queue(success ->{
+                                            event.getGuild().getDefaultChannel().sendMessage(params1[1] + " is one of us again!").queue();
+                                        },error ->{
+                                        });
+                                    }else{
+                                        System.out.println("Failed");
+                                    }
+                                }
+                            },Long.parseLong(params[2]) * 1000);
+                        }
+                    }
+                }
+            }
+        }else{
+            event.getChannel().sendMessage("Solo l'owner può softbannare un utente").queue();
         }
     }
 
