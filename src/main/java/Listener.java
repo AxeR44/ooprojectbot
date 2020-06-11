@@ -112,6 +112,9 @@ public class Listener extends ListenerAdapter {
                     case "report":
                         commands.reportUser(event);
                         break;
+                    case "softban":
+                        commands.softBan(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

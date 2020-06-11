@@ -7,6 +7,7 @@ import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 
 public class CommandsImpl implements Commands {
 
@@ -503,6 +505,61 @@ public class CommandsImpl implements Commands {
                     });
                 }
             }
+        }
+    }
+
+    @Override
+    public void softBan(GuildMessageReceivedEvent event) {
+        // .softban @<nome> -- <reason> -- <time>
+        // .softban @RockyTeck -- è sempre colpa tua -- 30
+        String[] params = event.getMessage().getContentRaw().split(" -- ");
+        String[] params1 = params[0].split(" ");
+        final Role role;
+        if (event.getMessage().getMember().isOwner()) {
+            if (params.length + params1.length - 1 != 4) {
+                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            } else {
+                final String userID = params1[1].substring(3, params1[1].length() - 1);
+                if (params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
+                    if (userID.equals(event.getGuild().getOwnerId())) {
+                        event.getChannel().sendMessage("Can't softban the owner").queue();
+                    } else if (userID.equals(event.getGuild().getSelfMember().getId())) {
+                        event.getChannel().sendMessage("Can't softban SaaSBot").queue();
+                    }else{
+                        Member member = event.getGuild().getMemberById(userID);
+                        List<Role> roles = event.getGuild().getRolesByName("Softbanned", true);
+                        if(roles.size() == 0){
+                            role = event.getGuild().createRole().setName("Softbanned")
+                                    .setPermissions(Permission.MESSAGE_HISTORY, Permission.MESSAGE_READ)
+                                    .setHoisted(true)
+                                    .setColor(Color.MAGENTA)
+                                    .complete();
+                        }else{
+                            role = roles.get(0);
+                        }
+                        if(!member.getRoles().contains(role)){
+                            event.getChannel().sendMessage(params1[1] + " has been softbanned for the reason: " + params[1] + ", for " + params[2] + " seconds.").queue();
+                            event.getGuild().addRoleToMember(member,role).queue();
+                            final Timer t = new Timer();
+                            t.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if(member.getRoles().contains(role)){
+                                        event.getGuild().removeRoleFromMember(member,role).queue(success ->{
+                                            event.getGuild().getDefaultChannel().sendMessage(params1[1] + " is one of us again!").queue();
+                                        },error ->{
+                                        });
+                                    }else{
+                                        System.out.println("Failed");
+                                    }
+                                }
+                            },Long.parseLong(params[2]) * 1000);
+                        }
+                    }
+                }
+            }
+        }else{
+            event.getChannel().sendMessage("Solo l'owner può softbannare un utente").queue();
         }
     }
 }

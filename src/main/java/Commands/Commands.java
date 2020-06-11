@@ -24,4 +24,5 @@ public interface Commands {
     void removeTelegram(GuildMessageReceivedEvent event);
     void coinToss(GuildMessageReceivedEvent event);
     void reportUser(GuildMessageReceivedEvent event);
+    void softBan(GuildMessageReceivedEvent event);
 }
