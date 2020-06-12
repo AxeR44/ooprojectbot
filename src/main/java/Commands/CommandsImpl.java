@@ -3,12 +3,12 @@ package Commands;
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
 import CommandsUtils.NetUtils;
-import CommandsUtils.YouTubeSearch;
 import Lyrics.Lyrics;
 import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
+import Wrappers.SongLength;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutionException;
 public class CommandsImpl implements Commands {
 
     private TelegramNotifierAsync tnAsync;
-    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -217,7 +216,7 @@ public class CommandsImpl implements Commands {
                 AudioTrack current = tracks.get(i);
                 builder.append(i + ": ");
                 builder.append(current.getInfo().title + " ");
-                builder.append(current.getInfo().length + "\n");
+                builder.append(new SongLength(current.getInfo().length).toString() + "\n");
             }
             event.getChannel().sendMessage(builder.toString()).queue();
         }

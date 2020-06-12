@@ -63,6 +63,8 @@ public class Listener extends ListenerAdapter {
                             commands.play(event, event.getMessage().getContentRaw().substring(6), false);
                         }catch(NullPointerException e){
                             event.getChannel().sendMessage(e.getMessage()).queue();
+                        }catch(StringIndexOutOfBoundsException e){
+                            event.getChannel().sendMessage("Numero di parametri invalido").queue();
                         }
 
                         break;
