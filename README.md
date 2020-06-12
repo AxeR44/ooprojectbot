@@ -1,7 +1,7 @@
 # OOProjectBot
 This is a discord bot developed in java using JDA and deployed using heroku
 
-## Commands
+## Discord Bot Commands
 Right now the bot can handle the following commands:
 
 ```
@@ -24,6 +24,19 @@ Right now the bot can handle the following commands:
 .survey <question> -- custom -- [emotes]: creates a custom survey with custom answers 
 .endSurvey <surveyID>: ends a survey displaying the result
 .coinToss: flips a coin
+.report @<user>: reports a user to the server owner 
+.softban @<user> -- <reason> -- <timeinSeconds>: softbans a user
+.wiki <query>: Searches a page on wikipedia
+.lyrics: Displays lyrics for playing song
+.lyrics <query>: Searches for lyrics.
+.reminder <object> -- <timeinSeconds>: remindes a user of something
+```
+
+##Telegram Bot Commands:
+The Telegram bot can handle the following commands:
+
+```
+/sendDiscord <message> -- <guildName>: sends a message to the main text channel of a guild
 ```
 
 ## TO-DO LIST
@@ -46,11 +59,14 @@ Right now the bot can handle the following commands:
 * [x] Adding and removing Telegram groups
 * [x] Every guild has its own Telegram Groups
 * [x] Coin toss
-* [ ] Making discord -> telegram interaction bidirectional
-* [ ] Report user
-* [ ] Searching content on Wikipedia
-* [ ] Softban
+* [x] Making discord -> telegram interaction bidirectional
+* [x] Report user
+* [x] Searching content on Wikipedia
+* [x] Softban
+* [x] Searching lyrics
+* [x] Reminder 
 * [ ] Searching songs without link (.play <songName>)
+* [ ] Asynchronous Discord message handling
 
 
 ## Authors
