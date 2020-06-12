@@ -135,6 +135,9 @@ public class Listener extends ListenerAdapter {
                     case "reminder":
                         commands.reminder(event);
                         break;
+                    case "search":
+                        commands.search(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

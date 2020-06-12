@@ -2,6 +2,7 @@ package Commands;
 
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
+import CommandsUtils.YouTubeSearch;
 import Lyrics.Lyrics;
 import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
@@ -691,6 +692,26 @@ public class CommandsImpl implements Commands {
                     });
                 }
             },Long.parseLong(params[1]) * 1000);
+        }
+    }
+
+
+
+
+    @Override
+    public void search(GuildMessageReceivedEvent event){
+        String query = event.getMessage().getContentRaw().substring(7);
+        try {
+            JSONArray arr = YouTubeSearch.youtubeSearch(query).getJSONArray("items");
+            if(!arr.isEmpty()) {
+                JSONObject obj = arr.getJSONObject(0);
+                JSONObject snippet = obj.getJSONObject("snippet");
+                event.getChannel().sendMessage(snippet.getString("title") + "\n" + "https://youtube.com/watch?v=" + obj.getJSONObject("id").getString("videoId")).queue();
+            }else{
+                event.getChannel().sendMessage("No result found").queue();
+            }
+        }catch(Exception e){
+            event.getChannel().sendMessage("An error occourred").queue();
         }
     }
 }

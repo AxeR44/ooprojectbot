@@ -19,6 +19,7 @@ public class ProvaBot {
 
     public native String getAPIK();
     public native String getTelegramAPIK();
+    public native String getGoogleAPIK();
     private static JDA jda;
 
     static{
