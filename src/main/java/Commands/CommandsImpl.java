@@ -181,7 +181,7 @@ public class CommandsImpl implements Commands {
                     return;
                 }
                 if(Url == null){
-                    event.getChannel().sendMessage("Nessun risultato trovato");
+                    event.getChannel().sendMessage("Nessun risultato trovato").queue();
                     return;
                 }
             }
