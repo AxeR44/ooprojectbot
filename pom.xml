@@ -74,6 +74,11 @@
             <artifactId>telegrambots</artifactId>
             <version>4.9</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-youtube</artifactId>
+            <version>v3-rev222-1.25.0</version>
+        </dependency>
     </dependencies>
 
 	<build>
