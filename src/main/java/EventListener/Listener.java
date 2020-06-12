@@ -20,7 +20,13 @@ public class Listener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+    public void onGuildMessageReceived(GuildMessageReceivedEvent event){
+        new Thread(()->{
+            handleCommand(event);
+        }).start();
+    }
+
+    private void handleCommand(GuildMessageReceivedEvent event){
         String[] args = event.getMessage().getContentRaw().split(" ");
         if (!event.getAuthor().isBot()) {
             if (args[0].startsWith(prefix)) {
