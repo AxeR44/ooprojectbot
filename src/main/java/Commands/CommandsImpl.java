@@ -2,6 +2,7 @@ package Commands;
 
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
+import CommandsUtils.NetUtils;
 import CommandsUtils.YouTubeSearch;
 import Lyrics.Lyrics;
 import Notifier.TelegramNotifierAsync;
@@ -9,7 +10,6 @@ import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.typesafe.config.ConfigException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -23,7 +23,6 @@ import org.json.*;
 import Lyrics.LyricsClient;
 
 import java.awt.*;
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
@@ -164,16 +163,29 @@ public class CommandsImpl implements Commands {
         AudioManager manager = guild.getAudioManager();
         if (Url == null) {
             if (channel != null) {
-                if (manager.isConnected()) {
+                this.player.leaveChannel(guild);
+                /*if (manager.isConnected()) {
                     this.player.clearAll(event.getChannel());
                     manager.closeAudioConnection();
-                }
+                }*/
             }
         } else {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
             manager.openAudioConnection(channel);
+            if(!NetUtils.isValidURL(Url)){
+                try{
+                    Url = NetUtils.youtubeSearch(Url);
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                    return;
+                }
+                if(Url == null){
+                    event.getChannel().sendMessage("Nessun risultato trovato");
+                    return;
+                }
+            }
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
     }
@@ -232,7 +244,6 @@ public class CommandsImpl implements Commands {
             }
         }
     }
-
 
     @Override
     public void quiz(GuildMessageReceivedEvent event) {
@@ -692,26 +703,6 @@ public class CommandsImpl implements Commands {
                     });
                 }
             },Long.parseLong(params[1]) * 1000);
-        }
-    }
-
-
-
-
-    @Override
-    public void search(GuildMessageReceivedEvent event){
-        String query = event.getMessage().getContentRaw().substring(7);
-        try {
-            JSONArray arr = YouTubeSearch.youtubeSearch(query).getJSONArray("items");
-            if(!arr.isEmpty()) {
-                JSONObject obj = arr.getJSONObject(0);
-                JSONObject snippet = obj.getJSONObject("snippet");
-                event.getChannel().sendMessage(snippet.getString("title") + "\n" + "https://youtube.com/watch?v=" + obj.getJSONObject("id").getString("videoId")).queue();
-            }else{
-                event.getChannel().sendMessage("No result found").queue();
-            }
-        }catch(Exception e){
-            event.getChannel().sendMessage("An error occourred").queue();
         }
     }
 }
