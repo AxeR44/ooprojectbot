@@ -13,6 +13,7 @@ Right now the bot can handle the following commands:
 .removeTelegram <channelName>: removes a telegram channel from the list
 .listGroups: lists all the groups the bot can send messages to
 .play <link>: connects to a voice channel and plays the audio track
+.play <query>: searches for a song on youtube and plays the first result
 .skip: skips a track
 .queue: displays the track queue
 .dequeue <index>: deletes the track at index <index> from the queue
@@ -32,7 +33,7 @@ Right now the bot can handle the following commands:
 .reminder <object> -- <timeinSeconds>: remindes a user of something
 ```
 
-##Telegram Bot Commands:
+## Telegram Bot Commands:
 The Telegram bot can handle the following commands:
 
 ```
@@ -65,8 +66,8 @@ The Telegram bot can handle the following commands:
 * [x] Softban
 * [x] Searching lyrics
 * [x] Reminder 
-* [ ] Searching songs without link (.play <songName>)
-* [ ] Asynchronous Discord message handling
+* [x] Searching songs without link (.play <query>)
+* [x] Asynchronous Discord message handling
 
 
 ## Authors
