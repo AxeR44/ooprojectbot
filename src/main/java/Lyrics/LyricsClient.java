@@ -187,8 +187,13 @@ public class LyricsClient {
         }
     }
 
-
-
+    /**
+     * Deletes all the useless infotmation from query string like parenthesis and text like "official music video"
+     * or "official audio"
+     *
+     * @param s input query
+     * @return non null {@link String} that corresponds to the parsed query
+     */
     private @NotNull String parseSearch(@NotNull String s){
         String[] chars = new String[]{"(", ")", "[" , "]"};
         s = s.toLowerCase();

@@ -39,8 +39,12 @@ public class SongLength {
     public String toString(){
         StringBuilder dateBuilder = new StringBuilder();
         for(int i = timeFields.length - 1; i >= 0; --i){
-            if(timeFields[i] != 0){
-                dateBuilder.append(timeFields[i]);
+            if(timeFields[i] != 0 || ( i != 4 && timeFields[i] == 0 && timeFields[i+1] != 0)){
+                if(timeFields[i] == 0){
+                    dateBuilder.append("00");
+                }else {
+                    dateBuilder.append(timeFields[i]);
+                }
                 if(i != 0){
                     dateBuilder.append(":");
                 }
