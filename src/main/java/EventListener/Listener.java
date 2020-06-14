@@ -16,7 +16,6 @@ public class Listener extends ListenerAdapter {
     public Listener(ChannelList list, TelegramNotifierAsync tnAsync){
         this.commands = new CommandsImpl(list, tnAsync);
         this.evnt = new HiBotEvent();
-
     }
 
     @Override
@@ -60,15 +59,14 @@ public class Listener extends ListenerAdapter {
                         commands.listChannels(event);
                         break;
                     case "play":
-                        if(args.length == 2){
-                            try{
-                                commands.play(event, args[1], false);
-                            }catch(NullPointerException e){
-                                event.getChannel().sendMessage(e.getMessage()).queue();
-                            }
-                        }else{
-                            event.getChannel().sendMessage("Numero di parametri invalido. Vedi .help per la sintassi del comando").queue();
+                        try{
+                            commands.play(event, event.getMessage().getContentRaw().substring(6), false);
+                        }catch(NullPointerException e){
+                            event.getChannel().sendMessage(e.getMessage()).queue();
+                        }catch(StringIndexOutOfBoundsException e){
+                            event.getChannel().sendMessage("Numero di parametri invalido").queue();
                         }
+
                         break;
                     case "leave":
                         if(args.length == 1) {

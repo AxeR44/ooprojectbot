@@ -2,13 +2,14 @@ package Commands;
 
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
+import CommandsUtils.NetUtils;
 import Lyrics.Lyrics;
 import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
+import Wrappers.SongLength;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.typesafe.config.ConfigException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -22,7 +23,6 @@ import org.json.*;
 import Lyrics.LyricsClient;
 
 import java.awt.*;
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutionException;
 public class CommandsImpl implements Commands {
 
     private TelegramNotifierAsync tnAsync;
-    private AudioManager manager;
     private final Player player;
     private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
@@ -163,16 +162,29 @@ public class CommandsImpl implements Commands {
         AudioManager manager = guild.getAudioManager();
         if (Url == null) {
             if (channel != null) {
-                if (manager.isConnected()) {
+                this.player.leaveChannel(guild);
+                /*if (manager.isConnected()) {
                     this.player.clearAll(event.getChannel());
                     manager.closeAudioConnection();
-                }
+                }*/
             }
         } else {
             if (channel == null) {
                 throw new NullPointerException("L'utente non è connesso a nessun canale vocale");
             }
             manager.openAudioConnection(channel);
+            if(!NetUtils.isValidURL(Url)){
+                try{
+                    Url = NetUtils.youtubeSearch(Url);
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                    return;
+                }
+                if(Url == null){
+                    event.getChannel().sendMessage("Nessun risultato trovato").queue();
+                    return;
+                }
+            }
             this.player.loadAndPlay(event.getChannel(), Url, hideNotification);
         }
     }
@@ -204,7 +216,7 @@ public class CommandsImpl implements Commands {
                 AudioTrack current = tracks.get(i);
                 builder.append(i + ": ");
                 builder.append(current.getInfo().title + " ");
-                builder.append(current.getInfo().length + "\n");
+                builder.append(new SongLength(current.getInfo().length).toString() + "\n");
             }
             event.getChannel().sendMessage(builder.toString()).queue();
         }
@@ -231,7 +243,6 @@ public class CommandsImpl implements Commands {
             }
         }
     }
-
 
     @Override
     public void quiz(GuildMessageReceivedEvent event) {
