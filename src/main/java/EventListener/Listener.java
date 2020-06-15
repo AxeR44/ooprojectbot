@@ -133,6 +133,9 @@ public class Listener extends ListenerAdapter {
                     case "reminder":
                         commands.reminder(event);
                         break;
+                    case "roll":
+                        commands.rollDice(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);

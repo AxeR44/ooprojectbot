@@ -712,4 +712,36 @@ public class CommandsImpl implements Commands {
             },Long.parseLong(params[1]) * 1000);
         }
     }
+
+    @Override
+    public void rollDice(GuildMessageReceivedEvent event){
+        // .roll <ndadi> <nmax>
+        String[] params = event.getMessage().getContentRaw().substring(6).split("d");
+        Random r = new Random();
+        if(params.length == 2){
+            try{
+                int ndice;
+                if(params[0].isEmpty()){
+                    ndice = 1;
+                }else {
+                    ndice = Integer.parseInt(params[0]);
+                }
+                int max = Integer.parseInt(params[1]);
+                StringBuilder builder = new StringBuilder();
+                if(ndice > 1 && max > 0) {
+                    builder.append("Rolled ").append(ndice).append("d").append(max).append("\n");
+                    for (int i = 0; i < ndice; ++i) {
+                        builder.append(i + 1).append(": ").append(r.nextInt(max)).append("\n");
+                    }
+                    event.getChannel().sendMessage(builder.toString()).queue();
+                }else if(ndice == 1){
+                    event.getChannel().sendMessage("Rolled d" + max + ": " + r.nextInt(max)).queue();
+                }
+            }catch(NumberFormatException e){
+                event.getMessage().addReaction(CROSS).queue();
+            }
+        }else{
+            event.getMessage().addReaction(CROSS).queue();
+        }
+    }
 }

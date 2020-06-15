@@ -28,4 +28,5 @@ public interface Commands {
     void wikiResearch(GuildMessageReceivedEvent event);
     void lyrics(GuildMessageReceivedEvent event);
     void reminder(GuildMessageReceivedEvent event);
+    void rollDice(GuildMessageReceivedEvent event);
 }
