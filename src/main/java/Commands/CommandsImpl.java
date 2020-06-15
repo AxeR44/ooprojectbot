@@ -543,6 +543,14 @@ public class CommandsImpl implements Commands {
                                     e.printStackTrace();
                                 }
                             }
+                        }else{
+                            privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                .queue(success ->{
+                                    event.getMessage().delete().queue();
+                                },error ->{
+                                    event.getMessage().delete().queue();
+                                    event.getChannel().sendMessage("Error").queue();
+                                });
                         }
                     });
                 }
