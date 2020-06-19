@@ -712,4 +712,19 @@ public class CommandsImpl implements Commands {
             },Long.parseLong(params[1]) * 1000);
         }
     }
+
+    @Override
+    public void seek(GuildMessageReceivedEvent event){
+        String[] params = event.getMessage().getContentRaw().split(" ");
+        if(params.length != 2){
+            //errore
+        }else{
+            try{
+                SongLength sl = new SongLength(params[1]);
+                player.getPlayingTrack(event.getChannel()).setPosition(sl.toMilliseconds());
+            }catch (IllegalArgumentException e){
+                e.printStackTrace();
+            }
+        }
+    }
 }

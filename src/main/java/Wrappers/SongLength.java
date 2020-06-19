@@ -1,5 +1,8 @@
 package Wrappers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.validation.constraints.Positive;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +36,39 @@ public class SongLength {
                 this.timeFields[i] = this.timeFields[i-1];
             }
         }
+    }
+
+    public SongLength(@NotNull String length) throws IllegalArgumentException{
+        String[] params = length.split(":");
+        if(params.length == 0 || params.length > 5){
+            throw new IllegalArgumentException();
+        }
+        for(int i = params.length -1 ; i >= 0; --i){
+            this.timeFields[params.length - 1 - i] = Integer.parseInt(params[i]);
+        }
+    }
+
+    public long toMilliseconds(){
+        Long milliseconds = 0L;
+        int unit = 365;
+        for(int i = this.timeFields.length -1; i >= 0; --i){
+            switch (i){
+                case 3:
+                    unit = 24;
+                    break;
+                case 2:
+                    unit = 60;
+                    break;
+                case 0:
+                    unit = 1000;
+                    break;
+            }
+            if(this.timeFields[i] != 0){
+                milliseconds += this.timeFields[i];
+            }
+            milliseconds *= unit;
+        }
+        return milliseconds;
     }
 
     @Override
