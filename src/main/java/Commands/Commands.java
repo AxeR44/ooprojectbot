@@ -29,4 +29,5 @@ public interface Commands {
     void lyrics(GuildMessageReceivedEvent event);
     void reminder(GuildMessageReceivedEvent event);
     void rollDice(GuildMessageReceivedEvent event);
+    void seek(GuildMessageReceivedEvent event);
 }

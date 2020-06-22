@@ -744,4 +744,21 @@ public class CommandsImpl implements Commands {
             event.getMessage().addReaction(CROSS).queue();
         }
     }
+
+    @Override
+    public void seek(GuildMessageReceivedEvent event){
+        String[] params = event.getMessage().getContentRaw().split(" ");
+        if(params.length != 2){
+            event.getChannel().sendMessage("Numero parametri invalido").queue();
+        }else{
+            try{
+                SongLength sl = new SongLength(params[1]);
+                player.getPlayingTrack(event.getChannel()).setPosition(sl.toMilliseconds());
+            }catch (IllegalArgumentException e){
+                e.printStackTrace();
+            }catch (NullPointerException e){
+                event.getChannel().sendMessage("Nessun brano in riproduzione").queue();
+            }
+        }
+    }
 }

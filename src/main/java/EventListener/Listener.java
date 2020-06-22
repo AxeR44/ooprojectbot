@@ -136,6 +136,9 @@ public class Listener extends ListenerAdapter {
                     case "roll":
                         commands.rollDice(event);
                         break;
+                    case "seek":
+                        commands.seek(event);
+                        break;
                 }
             } else {
                 evnt.handle(event);
