@@ -17,6 +17,7 @@ Right now the bot can handle the following commands:
 .skip: skips a track
 .queue: displays the track queue
 .dequeue <index>: deletes the track at index <index> from the queue
+.seek <time>: seeks through a media content
 .leave: disconnects from a voice channel
 .translate <text> -- <sourceLanguage> <targetLanguage>: Translates <text> from <sourceLanguage> to <targetLanguage>
 .langlist: lists all the languages supported by the .translate command
@@ -31,6 +32,7 @@ Right now the bot can handle the following commands:
 .lyrics: Displays lyrics for playing song
 .lyrics <query>: Searches for lyrics.
 .reminder <object> -- <timeinSeconds>: remindes a user of something
+.roll <nDice>d<nFaces>: rolls dices
 ```
 
 ## Telegram Bot Commands:
@@ -68,6 +70,8 @@ The Telegram bot can handle the following commands:
 * [x] Reminder 
 * [x] Searching songs without link (.play <query>)
 * [x] Asynchronous Discord message handling
+* [x] Seeking
+* [x] Dice roll
 
 
 ## Authors
