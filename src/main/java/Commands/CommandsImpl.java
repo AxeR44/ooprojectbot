@@ -3,12 +3,14 @@ package Commands;
 import CommandsUtils.RandomJokes;
 import CommandsUtils.Translator;
 import CommandsUtils.NetUtils;
+import Exceptions.NotEnoughParametersException;
 import Lyrics.Lyrics;
 import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
 import Wrappers.SongLength;
+import com.google.inject.internal.cglib.proxy.$InvocationHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -18,6 +20,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.fastily.jwiki.core.Wiki;
+import org.glassfish.grizzly.http.Note;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 import Lyrics.LyricsClient;
@@ -122,14 +125,17 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public boolean sendTelegram(GuildMessageReceivedEvent event) throws Exception {
+    public boolean sendTelegram(GuildMessageReceivedEvent event) throws NotEnoughParametersException {
         //message: params[0] chatname = params[1]
-        String[] args = event.getMessage().getContentRaw().substring(10).split(" -- ");
-        if(args[0].split(" ").length != 0) {
-            return tnAsync.sendMessage(event.getGuild().getId(), args[1], args[0], event.getAuthor().getName());
+        try {
+            String[] args = event.getMessage().getContentRaw().substring(10).split(" -- ");
+            if (args[0].split(" ").length != 0) {
+                return tnAsync.sendMessage(event.getGuild().getId(), args[1], args[0], event.getAuthor().getName());
+            }
+        }catch (IndexOutOfBoundsException e){
+            e.printStackTrace();
         }
-        event.getChannel().sendMessage("Invalid Argument(s)").queue();
-        return false;
+        throw new NotEnoughParametersException(".telegram", "more than 0");
     }
 
     @Override
@@ -153,8 +159,10 @@ public class CommandsImpl implements Commands {
             tNotifier.listChannels(event);*/
     }
 
+
+    //TODO remodulate exception handling
     @Override
-    public void play(GuildMessageReceivedEvent event, @Nullable String Url, boolean hideNotification) throws NullPointerException {
+    public void play(GuildMessageReceivedEvent event, @Nullable String Url, boolean hideNotification) throws NullPointerException, NotEnoughParametersException {
         Member m = event.getMember();
         Guild guild = m.getGuild();
         GuildVoiceState state = m.getVoiceState();
@@ -245,7 +253,7 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void quiz(GuildMessageReceivedEvent event) {
+    public void quiz(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -281,7 +289,11 @@ public class CommandsImpl implements Commands {
                 }
                 if (error) {
                     System.out.println("Message deleted, aborting Mettaton");
-                    play(event, null, false);
+                    try {
+                        play(event, null, false);
+                    } catch (NotEnoughParametersException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
             modify.start();
@@ -314,13 +326,13 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void voteKick(GuildMessageReceivedEvent event) {
+    public void voteKick(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         final int memberCount = event.getGuild().getMemberCount();
         final int quorum = memberCount / 2;
         String[] msg = event.getMessage().getContentRaw().split(" ");
         if (msg.length != 2) {
             //exception
-            event.getChannel().sendMessage("Numero di parametri invalidi").queue();
+            throw new NotEnoughParametersException(".votekick", "2");
         } else {
             final String userID = msg[1].substring(3, msg[1].length() - 1);
             System.out.println(event.getMessage().getContentRaw());
@@ -372,43 +384,47 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void survey(GuildMessageReceivedEvent event) {
+    public void survey(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         final Message message = event.getMessage();
         String Rawcontent = message.getContentRaw();
-        String[] params = Rawcontent.substring(8).split(" -- ");
-        if (params.length < 2) {
-            event.getChannel().sendMessage("Numero di parametri invalidi").queue();
-        } else {
-            final String surveyID = event.getChannel().sendMessage("@everyone\nVoting for:\n" + params[0]).complete().getId();
-            message.getAuthor().openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessage("Survey opened\n" + params[0] + "\nID: " + event.getMessage().getId() + "/" + surveyID).queue();
-            });
-            event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage ->{
-                switch (params[1]) {
-                    case "YesNo":
-                        surveyMessage.addReaction(TICK).queue();
-                        surveyMessage.addReaction(CROSS).queue();
-                        break;
-                    case "custom":
-                        String[] emotes = params[2].split(" ");
-                        for(String emote : emotes){
-                            surveyMessage.addReaction(emote).queue();
-                        }
-                        //event.getChannel().sendMessage("Not implemented yet.").queue();
-                        break;
-                    default:
-                        event.getChannel().sendMessage("Survey type not valid").queue();
-                        break;
-                }
-            });
+        try {
+            String[] params = Rawcontent.substring(8).split(" -- ");
+            if (params.length < 2) {
+                throw new NotEnoughParametersException(".survey", "2 or more");
+            } else {
+                final String surveyID = event.getChannel().sendMessage("@everyone\nVoting for:\n" + params[0]).complete().getId();
+                message.getAuthor().openPrivateChannel().queue(privateChannel -> {
+                    privateChannel.sendMessage("Survey opened\n" + params[0] + "\nID: " + event.getMessage().getId() + "/" + surveyID).queue();
+                });
+                event.getChannel().retrieveMessageById(surveyID).queue(surveyMessage -> {
+                    switch (params[1]) {
+                        case "YesNo":
+                            surveyMessage.addReaction(TICK).queue();
+                            surveyMessage.addReaction(CROSS).queue();
+                            break;
+                        case "custom":
+                            String[] emotes = params[2].split(" ");
+                            for (String emote : emotes) {
+                                surveyMessage.addReaction(emote).queue();
+                            }
+                            //event.getChannel().sendMessage("Not implemented yet.").queue();
+                            break;
+                        default:
+                            event.getChannel().sendMessage("Survey type not valid").queue();
+                            break;
+                    }
+                });
+            }
+        }catch(IndexOutOfBoundsException e){
+            throw new NotEnoughParametersException(".survey", "2 or more");
         }
     }
 
     @Override
-    public void endSurvey(GuildMessageReceivedEvent event){
+    public void endSurvey(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         String[] params = event.getMessage().getContentRaw().split(" ");
         if(params.length != 2) {
-            event.getChannel().sendMessage("Numero parametri invalido").queue();
+            throw new NotEnoughParametersException(".endSurvey", "1");
         }
         else{
             try {
@@ -437,7 +453,7 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void addTelegram(GuildMessageReceivedEvent event) {
+    public void addTelegram(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -450,7 +466,7 @@ public class CommandsImpl implements Commands {
             try {
                 String[] params = event.getMessage().getContentRaw().substring(13).split(" -- ");
                 if (params.length != 2) {
-                    event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+                    throw new NotEnoughParametersException(".addTelegram", "2");
                 } else {
                     //if (tNotifier.addChannel(event.getGuild().getId(), params)) {
                     if(chList.add(event.getGuild().getId(), params[0], params[1])){
@@ -460,16 +476,16 @@ public class CommandsImpl implements Commands {
                     }
                 }
             } catch (IndexOutOfBoundsException e) {
-                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+                throw new NotEnoughParametersException(".addtelegram", "2");
             }
         }else {
             event.getMessage().addReaction(CROSS).queue();
             event.getChannel().sendMessage("Solo chi è autorizzato può aggiungere gruppi").queue();
         }
     }
-
+    //TODO check parameters number
     @Override
-    public void removeTelegram(GuildMessageReceivedEvent event){
+    public void removeTelegram(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -488,7 +504,7 @@ public class CommandsImpl implements Commands {
                     event.getMessage().addReaction(CROSS).queue();
                 }
             } catch (IndexOutOfBoundsException e) {
-                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+                throw new NotEnoughParametersException(".removeTelegram", "1");
             }
         }else{
             event.getMessage().addReaction(CROSS).queue();
@@ -508,13 +524,13 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void reportUser(GuildMessageReceivedEvent event) {
+    public void reportUser(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         // .report @<nome> -- <reason>
         // .report @RockyTeck -- è sempre colpa sua.
         String[] params = event.getMessage().getContentRaw().split(" -- ");
         String[] params1 = params[0].split(" ");
         if (params.length + params1.length - 1 != 3) {
-            event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+            throw new NotEnoughParametersException(".report", "2");
         }else{
             final String userID = params1[1].substring(3, params1[1].length() - 1);
             if(params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
@@ -559,7 +575,7 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void softBan(GuildMessageReceivedEvent event) {
+    public void softBan(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         // .softban @<nome> -- <reason> -- <time>
         // .softban @RockyTeck -- è sempre colpa tua -- 30
         String[] params = event.getMessage().getContentRaw().split(" -- ");
@@ -567,7 +583,7 @@ public class CommandsImpl implements Commands {
         final Role role;
         if (event.getMessage().getMember().isOwner()) {
             if (params.length + params1.length - 1 != 4) {
-                event.getChannel().sendMessage("Numero dei parametri invalido").queue();
+                throw new NotEnoughParametersException(".softban", "3");
             } else {
                 final String userID = params1[1].substring(3, params1[1].length() - 1);
                 if (params1[1].startsWith("<@!") && params1[1].endsWith(">")) {
@@ -613,8 +629,10 @@ public class CommandsImpl implements Commands {
         }
     }
 
+
+    //TODO remodulate exception handling
     @Override
-    public void wikiResearch(GuildMessageReceivedEvent event){
+    public void wikiResearch(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         // .wiki <query>
         final String DOMAIN_IT = "it.wikipedia.org";
         String query = event.getMessage().getContentRaw().substring(6);
@@ -642,9 +660,9 @@ public class CommandsImpl implements Commands {
             }
         }
     }
-
+ //TODO remodulate exception handling
     @Override
-    public void lyrics(GuildMessageReceivedEvent event){
+    public void lyrics(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         // .lyrics faded
         //delting () and [] content
         String[] sources = new String[]{"A-Z Lyrics","Genius","MusixMatch","LyricsFreak"};
@@ -686,70 +704,78 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void reminder(GuildMessageReceivedEvent event){
+    public void reminder(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         // .reminder <content> -- <time>
         // .reminder Kickare Rocco -- 30
         String[] params = event.getMessage().getContentRaw().split(" -- ");
-        String content = params[0].substring(10);
-        if(params.length != 2) {
-            event.getChannel().sendMessage("Numero parametri invalido").queue();
-        }else{
-            User u = event.getMessage().getAuthor();
-            String sender = event.getMessage().getAuthor().getName();
-            event.getMessage().delete().queue();
-            event.getChannel().sendMessage("Ok " + sender + ", te lo ricorderò tra " + params[1] + " secondi").complete();
-            final Timer t = new Timer();
-            t.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    u.openPrivateChannel().queue(privateChannel -> {
-                    privateChannel.sendMessage("Remember: " + content).queue(
-                            error ->{
+        try {
+            String content = params[0].substring(10);
+            if (params.length != 2) {
+                throw new NotEnoughParametersException(".reminder", "2");
+            } else {
+                User u = event.getMessage().getAuthor();
+                String sender = event.getMessage().getAuthor().getName();
+                event.getMessage().delete().queue();
+                event.getChannel().sendMessage("Ok " + sender + ", te lo ricorderò tra " + params[1] + " secondi").complete();
+                final Timer t = new Timer();
+                t.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        u.openPrivateChannel().queue(privateChannel -> {
+                            privateChannel.sendMessage("Remember: " + content).queue(
+                                    error -> {
 
-                            });
-                    });
-                }
-            },Long.parseLong(params[1]) * 1000);
-        }
-    }
-
-    @Override
-    public void rollDice(GuildMessageReceivedEvent event){
-        // .roll <ndadi> <nmax>
-        String[] params = event.getMessage().getContentRaw().substring(6).split("d");
-        Random r = new Random();
-        if(params.length == 2){
-            try{
-                int ndice;
-                if(params[0].isEmpty()){
-                    ndice = 1;
-                }else {
-                    ndice = Integer.parseInt(params[0]);
-                }
-                int max = Integer.parseInt(params[1]);
-                StringBuilder builder = new StringBuilder();
-                if(ndice > 1 && max > 0) {
-                    builder.append("Rolled ").append(ndice).append("d").append(max).append("\n");
-                    for (int i = 0; i < ndice; ++i) {
-                        builder.append(i + 1).append(": ").append(r.nextInt(max)).append("\n");
+                                    });
+                        });
                     }
-                    event.getChannel().sendMessage(builder.toString()).queue();
-                }else if(ndice == 1){
-                    event.getChannel().sendMessage("Rolled d" + max + ": " + r.nextInt(max)).queue();
-                }
-            }catch(NumberFormatException e){
-                event.getMessage().addReaction(CROSS).queue();
+                }, Long.parseLong(params[1]) * 1000);
             }
-        }else{
-            event.getMessage().addReaction(CROSS).queue();
+        }catch(IndexOutOfBoundsException e){
+            throw new NotEnoughParametersException(".reminder", "2");
         }
     }
 
     @Override
-    public void seek(GuildMessageReceivedEvent event){
+    public void rollDice(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
+        // .roll <ndadi> <nmax>
+        try {
+            String[] params = event.getMessage().getContentRaw().substring(6).split("d");
+            Random r = new Random();
+            if (params.length == 2) {
+                try {
+                    int ndice;
+                    if (params[0].isEmpty()) {
+                        ndice = 1;
+                    } else {
+                        ndice = Integer.parseInt(params[0]);
+                    }
+                    int max = Integer.parseInt(params[1]);
+                    StringBuilder builder = new StringBuilder();
+                    if (ndice > 1 && max > 0) {
+                        builder.append("Rolled ").append(ndice).append("d").append(max).append("\n");
+                        for (int i = 0; i < ndice; ++i) {
+                            builder.append(i + 1).append(": ").append(r.nextInt(max)).append("\n");
+                        }
+                        event.getChannel().sendMessage(builder.toString()).queue();
+                    } else if (ndice == 1) {
+                        event.getChannel().sendMessage("Rolled d" + max + ": " + r.nextInt(max)).queue();
+                    }
+                } catch (NumberFormatException e) {
+                    event.getMessage().addReaction(CROSS).queue();
+                }
+            } else {
+                throw new NotEnoughParametersException(".roll", "2");
+            }
+        }catch(IndexOutOfBoundsException e){
+            throw new NotEnoughParametersException(".roll", "2");
+        }
+    }
+
+    @Override
+    public void seek(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
         String[] params = event.getMessage().getContentRaw().split(" ");
         if(params.length != 2){
-            event.getChannel().sendMessage("Numero parametri invalido").queue();
+            throw new NotEnoughParametersException(".seek", "1");
         }else{
             try{
                 SongLength sl = new SongLength(params[1]);
