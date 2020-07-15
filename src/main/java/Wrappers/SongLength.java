@@ -1,15 +1,11 @@
 package Wrappers;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.validation.constraints.Positive;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class SongLength {
 
-    private int seconds, minutes, hours, days, years;
     private int[] timeFields = new int[5];
     private long milliseconds;
 

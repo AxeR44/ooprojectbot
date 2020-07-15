@@ -10,7 +10,6 @@ import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
 import Wrappers.SongLength;
-import com.google.inject.internal.cglib.proxy.$InvocationHandler;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -20,7 +19,6 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.fastily.jwiki.core.Wiki;
-import org.glassfish.grizzly.http.Note;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
 import Lyrics.LyricsClient;
@@ -37,7 +35,6 @@ public class CommandsImpl implements Commands {
 
     private TelegramNotifierAsync tnAsync;
     private final Player player;
-    private final RandomJokes jokesGenerator;
     private final Translator langPrinter;
     private final LyricsClient client;
     private final String TICK = "\u2705";
@@ -48,7 +45,6 @@ public class CommandsImpl implements Commands {
     public CommandsImpl(ChannelList list , TelegramNotifierAsync tnAsync) {
         this.tnAsync = tnAsync;
         player = new Player();
-        jokesGenerator = new RandomJokes();
         langPrinter = new Translator();
         this.chList = list;
         client = new LyricsClient();
@@ -155,8 +151,6 @@ public class CommandsImpl implements Commands {
         }catch(NullPointerException e){
             event.getChannel().sendMessage("No channel available for guild").queue();
         }
-        /*if (this.tNotifier != null)
-            tNotifier.listChannels(event);*/
     }
 
 
@@ -171,10 +165,6 @@ public class CommandsImpl implements Commands {
         if (Url == null) {
             if (channel != null) {
                 this.player.leaveChannel(guild);
-                /*if (manager.isConnected()) {
-                    this.player.clearAll(event.getChannel());
-                    manager.closeAudioConnection();
-                }*/
             }
         } else {
             if (channel == null) {
@@ -302,7 +292,7 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void rJokes(GuildMessageReceivedEvent event) {
-        String extractedJoke = jokesGenerator.jokes();
+        String extractedJoke = RandomJokes.jokes();
         EmbedBuilder randJoke = new EmbedBuilder();
         randJoke.setDescription(extractedJoke);
         randJoke.setColor(Color.blue);
@@ -407,7 +397,6 @@ public class CommandsImpl implements Commands {
                             for (String emote : emotes) {
                                 surveyMessage.addReaction(emote).queue();
                             }
-                            //event.getChannel().sendMessage("Not implemented yet.").queue();
                             break;
                         default:
                             event.getChannel().sendMessage("Survey type not valid").queue();
@@ -754,11 +743,11 @@ public class CommandsImpl implements Commands {
                     if (ndice > 1 && max > 0) {
                         builder.append("Rolled ").append(ndice).append("d").append(max).append("\n");
                         for (int i = 0; i < ndice; ++i) {
-                            builder.append(i + 1).append(": ").append(r.nextInt(max)).append("\n");
+                            builder.append(i + 1).append(": ").append(r.nextInt(max) + 1).append("\n");
                         }
                         event.getChannel().sendMessage(builder.toString()).queue();
                     } else if (ndice == 1) {
-                        event.getChannel().sendMessage("Rolled d" + max + ": " + r.nextInt(max)).queue();
+                        event.getChannel().sendMessage("Rolled d" + max + ": " + (r.nextInt(max) + 1)).queue();
                     }
                 } catch (NumberFormatException e) {
                     event.getMessage().addReaction(CROSS).queue();

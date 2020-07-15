@@ -1,22 +1,21 @@
 package EventListener;
 
 import Commands.CommandsImpl;
-import Eventi.HiBotEvent;
 import Exceptions.NotEnoughParametersException;
 import Notifier.TelegramNotifierAsync;
 import Wrappers.ChannelList;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.io.InputStream;
+
 public class Listener extends ListenerAdapter {
 
     private static String prefix = ".";
     private static CommandsImpl commands;
-    private HiBotEvent evnt;
 
     public Listener(ChannelList list, TelegramNotifierAsync tnAsync){
         this.commands = new CommandsImpl(list, tnAsync);
-        this.evnt = new HiBotEvent();
     }
 
     @Override
@@ -140,7 +139,29 @@ public class Listener extends ListenerAdapter {
                     event.getChannel().sendMessage(e.getMessage()).queue();
                 }
             }else {
-                evnt.handle(event);
+                this.handleSpecial(event);
+            }
+        }
+    }
+
+    private void handleSpecial(GuildMessageReceivedEvent event){
+        String content = event.getMessage().getContentRaw();
+        if(content.equalsIgnoreCase("KEKW")){
+            try{
+                InputStream iStream = this.getClass().getClassLoader().getResourceAsStream("TKEKW.png");
+                event.getChannel().sendFile(iStream, "TKEKW.png").queue();
+            }catch(Exception e){
+                //nop
+                System.out.println("Error " + e.getMessage());
+            }
+        }
+        if(content.equalsIgnoreCase("SaS")){
+            try{
+                InputStream iStream = this.getClass().getClassLoader().getResourceAsStream("sas.png");
+                event.getChannel().sendFile(iStream, "sas.png").queue();
+            }catch(Exception e){
+                //nop
+                System.out.println("Error " + e.getMessage());
             }
         }
     }

@@ -2,6 +2,7 @@ package Main;
 
 import EventListener.Listener;
 import EventListener.MessageReactionHandler;
+import Helpers.OS;
 import Notifier.TelegramNotifierAsync;
 import Wrappers.ChannelList;
 import net.dv8tion.jda.api.JDA;
@@ -23,8 +24,12 @@ public class ProvaBot {
     private static JDA jda;
 
     static{
-        System.loadLibrary("ApiKeys");
-        ApiContextInitializer.init();
+        if(OS.isOSSupported()) {
+            System.loadLibrary("ApiKeys");
+            ApiContextInitializer.init();
+        }else{
+            System.exit(-1);
+        }
     }
 
     public static void main(String args[]){

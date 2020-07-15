@@ -11,8 +11,6 @@ import java.util.HashMap;
 public class MessageReactionHandler extends ListenerAdapter {
 
     private static HashMap<String, MessageCountWrapper> reactionsCount;
-    public final String TICK = "\u2705";
-    public final String CROSS = "\u274C";
 
     public MessageReactionHandler(){
         reactionsCount = new HashMap<>();
@@ -45,7 +43,6 @@ public class MessageReactionHandler extends ListenerAdapter {
                 if(wrp.setVoteCount(emoteName, 1)){
                     wrp.setVoted(event.getMember().getId(),false);
                 }
-                //wrapperModify(wrp, 1, emoteName);
             }else{
                 wrp.setVoteDuplicate(uID, false);
             }
@@ -61,7 +58,6 @@ public class MessageReactionHandler extends ListenerAdapter {
 
     private synchronized void addReactionToMap(String msgID, MessageReactionAddEvent event){
         String emoteName = event.getReactionEmote().getName();
-        //if(emoteName.equals(TICK) || emoteName.equals(CROSS)){
             if(!reactionsCount.containsKey(msgID)){
                 reactionsCount.put(msgID, new MessageCountWrapper(event.getTextChannel().getGuild().getMembers()));  //TICK 0 CROSS 1
             }
@@ -69,7 +65,6 @@ public class MessageReactionHandler extends ListenerAdapter {
             String uID = event.getMember().getId();
             if(!event.getGuild().getSelfMember().getId().equals(uID) && event.getUser().isBot()) return;
             else if(!event.getGuild().getSelfMember().getId().equals(uID)){
-                //if user voted
                 if(wrp.hasUserAlreadyVoted(uID)){
                     wrp.setVoteDuplicate(uID, true);
                     event.getTextChannel().removeReactionById(msgID, emoteName, event.getMember().getUser()).complete();
@@ -84,22 +79,7 @@ public class MessageReactionHandler extends ListenerAdapter {
                     }
                 }
             }else{
-                //add reaction to allowed reaction for message
                 wrp.botAddReaction(emoteName);
             }
-        //}
-    }
-
-
-    private void wrapperModify(MessageCountWrapper wrp, int tag, String emoteName){
-
-        /*switch(emoteName) {
-            case TICK:
-                wrp.setVoteCount(0, tag);
-                break;
-            case CROSS:
-                wrp.setVoteCount(1,tag);
-                break;
-        }*/
     }
 }

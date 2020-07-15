@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class RandomJokes {
 
-     private final String[] joke = {"Lo sapete che per il decreto coronavirus sono vietate le canzoni di Andrea Bocelli.... In particolare Partirò.",
+     private static final String[] joke = {"Lo sapete che per il decreto coronavirus sono vietate le canzoni di Andrea Bocelli.... In particolare Partirò.",
              "Cosa dice uno spaventapasseri bugiardo? Dice le balle di fieno!",
              "Lo sai perché nei ristoranti genovesi non possono vedere il conto? Perché è buio pesto!",
              "Se il cane ringhia, la ringhiera abbaia?",
@@ -19,7 +19,7 @@ public class RandomJokes {
              "Cosa sono il cono e la piramide per uno studente ignorante? I solidi ignoti.",
              "L'adesivo sulla macchina dei pasticceri: babà a bordo"};
 
-    public String jokes(){
+    public static String jokes(){
         Random rand = new Random();
         final int indmaxm = joke.length;
         int indr = rand.nextInt(indmaxm);
