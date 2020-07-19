@@ -6,6 +6,7 @@ import Notifier.TelegramNotifierAsync;
 import Wrappers.ChannelList;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 
@@ -14,8 +15,8 @@ public class Listener extends ListenerAdapter {
     private static String prefix = ".";
     private static CommandsImpl commands;
 
-    public Listener(ChannelList list, TelegramNotifierAsync tnAsync){
-        this.commands = new CommandsImpl(list, tnAsync);
+    public Listener(ChannelList list, TelegramNotifierAsync tnAsync, MessageReactionHandler handler){
+        this.commands = new CommandsImpl(list, tnAsync, handler);
     }
 
     @Override
@@ -25,7 +26,7 @@ public class Listener extends ListenerAdapter {
         }).start();
     }
 
-    private void handleCommand(GuildMessageReceivedEvent event){
+    private void handleCommand(@NotNull GuildMessageReceivedEvent event){
         String[] args = event.getMessage().getContentRaw().split(" ");
         if (!event.getAuthor().isBot()) {
             if (args[0].startsWith(prefix)) {
@@ -144,7 +145,7 @@ public class Listener extends ListenerAdapter {
         }
     }
 
-    private void handleSpecial(GuildMessageReceivedEvent event){
+    private void handleSpecial(@NotNull GuildMessageReceivedEvent event){
         String content = event.getMessage().getContentRaw();
         if(content.equalsIgnoreCase("KEKW")){
             try{

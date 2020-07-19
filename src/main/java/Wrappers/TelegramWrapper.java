@@ -21,9 +21,7 @@ public class TelegramWrapper {
     }
 
     public synchronized void addChannel(String channelName, String channelID){
-        if(!guildChannels.containsKey(channelName) && !guildChannels.containsValue(channelID)){
-            guildChannels.put(channelID, channelName);
-        }
+        guildChannels.put(channelID, channelName);
     }
 
     public synchronized void removeChannel(String channelName){

@@ -19,7 +19,6 @@ public class Player{
 
     public Player(){
         this.playerManager = new DefaultAudioPlayerManager();
-
         musicManagers = new HashMap<>();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
@@ -53,12 +52,12 @@ public class Player{
             @Override
             public void playlistLoaded(AudioPlaylist audioPlaylist) {
                 AudioTrack firstTrack = audioPlaylist.getSelectedTrack();
-
                 if(firstTrack == null){
-                    firstTrack = audioPlaylist.getTracks().get(0);
+                    for(AudioTrack t : audioPlaylist.getTracks()){
+                        play(musicManager, t);
+                    }
+                    channel.sendMessage("Riproduzione della playlist " + audioPlaylist.getName()).queue();
                 }
-
-                play(musicManager, firstTrack);
             }
 
             @Override
@@ -69,6 +68,7 @@ public class Player{
             @Override
             public void loadFailed(FriendlyException e) {
                 channel.sendMessage("Impossibile riprodurre: " + e.getMessage()).queue();
+                leaveChannel(channel.getGuild());
             }
         });
     }
@@ -101,8 +101,7 @@ public class Player{
     }
 
     public void leaveChannel(final Guild g){
-        TrackScheduler sched = getGuildAudioPlayer(g).scheduler;
-        sched.leave();
+        getGuildAudioPlayer(g).scheduler.leave();
     }
 
 }

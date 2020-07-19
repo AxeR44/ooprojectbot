@@ -23,11 +23,8 @@ public class NetUtils {
         JSONArray arr = YouTubeSearch.youtubeSearch(query).getJSONArray("items");
         if(!arr.isEmpty()) {
             JSONObject obj = arr.getJSONObject(0);
-            JSONObject snippet = obj.getJSONObject("snippet");
             return BASE_URL + obj.getJSONObject("id").getString("videoId");
-            //event.getChannel().sendMessage(snippet.getString("title") + "\n" + "https://youtube.com/watch?v=" + obj.getJSONObject("id").getString("videoId")).queue();
         }else{
-            //event.getChannel().sendMessage("No result found").queue();
             return null;
         }
     }

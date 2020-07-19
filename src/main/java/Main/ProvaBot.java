@@ -5,6 +5,7 @@ import EventListener.MessageReactionHandler;
 import Helpers.OS;
 import Notifier.TelegramNotifierAsync;
 import Wrappers.ChannelList;
+import com.google.inject.internal.asm.$Handle;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -36,6 +37,7 @@ public class ProvaBot {
         ChannelList chList = new ChannelList();
         TelegramNotifierAsync tnAsync = new TelegramNotifierAsync(chList);
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+        MessageReactionHandler hnd = new MessageReactionHandler();
         try {
             telegramBotsApi.registerBot(tnAsync);
             jda = JDABuilder.createDefault(new ProvaBot().getAPIK())
@@ -43,8 +45,8 @@ public class ProvaBot {
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
                     .build();
-            jda.addEventListener(new Listener(chList, tnAsync));
-            jda.addEventListener(new MessageReactionHandler());
+            jda.addEventListener(new Listener(chList, tnAsync, hnd));
+            jda.addEventListener(hnd);
         }catch (LoginException | TelegramApiException e) {
             e.printStackTrace();
         }

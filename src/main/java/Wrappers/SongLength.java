@@ -75,7 +75,7 @@ public class SongLength {
                 if(timeFields[i] == 0){
                     dateBuilder.append("00");
                 }else {
-                    dateBuilder.append(timeFields[i]);
+                    dateBuilder.append(timeFields[i] < 10?"0" + timeFields[i]:timeFields[i]);
                 }
                 if(i != 0){
                     dateBuilder.append(":");

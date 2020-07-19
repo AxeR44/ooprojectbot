@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.managers.AudioManager;
 public class GuildMusicManager {
 
     public final AudioPlayer player;
-
     public final TrackScheduler scheduler;
 
     public GuildMusicManager(AudioPlayerManager manager, AudioManager aManager){

@@ -4,7 +4,6 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -35,43 +34,14 @@ public class LyricsClient {
      * Constructs a new {@link LyricsClient} using all defaults
      */
     public LyricsClient() {
-        this(null, null);
+        this(null);
     }
 
-    /**
-     * Constructs a new {@link LyricsClient}, specifying the default source
-     * for lyrics
-     *
-     * @param defaultSource the default source for lyrics
-     */
     public LyricsClient(String defaultSource) {
-        this(defaultSource, null);
-    }
-
-    /**
-     * Constructs a new {@link LyricsClient}, specifying an {@link Executor}
-     * to be used for making {@link CompletableFuture}s
-     *
-     * @param executor the executor to use internally
-     */
-    public LyricsClient(Executor executor)
-    {
-        this(null, executor);
-    }
-
-    /**
-     * Constructs a new {@link LyricsClient}, specifying the default source
-     * for lyrics as well as an {@link Executor} to be used for making
-     * {@link CompletableFuture}s
-     *
-     * @param defaultSource the default source for lyrics
-     * @param executor the executor to use internally
-     */
-    public LyricsClient(String defaultSource, Executor executor) {
         this.defaultSource = defaultSource == null ? config.getString("lyrics.default") : defaultSource;
         this.userAgent = config.getString("lyrics.user-agent");
         this.timeout = config.getInt("lyrics.timeout");
-        this.executor = executor == null ? Executors.newCachedThreadPool() : executor;
+        this.executor =  Executors.newCachedThreadPool();
     }
 
     /**
@@ -120,7 +90,6 @@ public class LyricsClient {
                     else
                         doc = connection.get();
 
-                    //Element urlElement = doc.selectFirst(select);
                     Elements elements = doc.select("result");
                     Element urlElementMax = null;
                     String lowerSearch = fsearch.toLowerCase();
@@ -153,7 +122,6 @@ public class LyricsClient {
                                 url = e.text();
                             }
                         }
-                        //url = urlElementMax.select("url").text();
                     }
                     else {
                         url = urlElementMax.attr("abs:href");

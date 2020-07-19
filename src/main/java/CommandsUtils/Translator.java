@@ -46,7 +46,7 @@ public class Translator {
         languages.put("portoghese", "pt");
         languages.put("inglese", "en");
         languages.put("rumeno", "ro");
-        languages.put("esperanto", "eo"); // excuse me wtf?
+        languages.put("esperanto", "eo");
         languages.put("russo", "ru");
         languages.put("estone", "et");
         languages.put("serbo", "sr");

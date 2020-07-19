@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class MessageReactionHandler extends ListenerAdapter {
 
-    private static HashMap<String, MessageCountWrapper> reactionsCount;
+    private HashMap<String, MessageCountWrapper> reactionsCount;
 
     public MessageReactionHandler(){
         reactionsCount = new HashMap<>();
@@ -50,7 +50,7 @@ public class MessageReactionHandler extends ListenerAdapter {
         }
     }
 
-    public static HashMap<String, Integer> getReactionsCount(String msgID){
+    public synchronized HashMap<String, Integer> getReactionsCount(String msgID){
         HashMap<String, Integer> count = reactionsCount.get(msgID).getCount();
         reactionsCount.remove(msgID);
         return count;

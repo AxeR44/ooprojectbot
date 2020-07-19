@@ -10,12 +10,12 @@ public interface Commands {
     void sendInfo(GuildMessageReceivedEvent event);
     boolean sendTelegram(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void listChannels(GuildMessageReceivedEvent event);
-    void play(GuildMessageReceivedEvent event, String Url, boolean hideNotification) throws NullPointerException, NotEnoughParametersException;
+    void play(GuildMessageReceivedEvent event, String Url, boolean hideNotification) throws NullPointerException;
     void skip(GuildMessageReceivedEvent event);
     void dequeue(String index, GuildMessageReceivedEvent event);
     void queue(GuildMessageReceivedEvent event);
     void translator(GuildMessageReceivedEvent event, String[] args);
-    void quiz(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
+    void quiz(GuildMessageReceivedEvent event);
     void rJokes(GuildMessageReceivedEvent event);
     void languagePrinter(GuildMessageReceivedEvent event);
     void voteKick(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
@@ -26,8 +26,8 @@ public interface Commands {
     void coinToss(GuildMessageReceivedEvent event);
     void reportUser(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void softBan(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
-    void wikiResearch(GuildMessageReceivedEvent event)throws NotEnoughParametersException;
-    void lyrics(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
+    void wikiResearch(GuildMessageReceivedEvent event);
+    void lyrics(GuildMessageReceivedEvent event);
     void reminder(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void rollDice(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void seek(GuildMessageReceivedEvent event) throws NotEnoughParametersException;

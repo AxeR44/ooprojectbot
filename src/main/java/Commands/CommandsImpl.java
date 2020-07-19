@@ -35,19 +35,21 @@ public class CommandsImpl implements Commands {
 
     private TelegramNotifierAsync tnAsync;
     private final Player player;
-    private final Translator langPrinter;
+    private final Translator translator;
     private final LyricsClient client;
     private final String TICK = "\u2705";
     private final String CROSS = "\u274C";
     private ChannelList chList;
+    private final MessageReactionHandler handler;
 
 
-    public CommandsImpl(ChannelList list , TelegramNotifierAsync tnAsync) {
+    public CommandsImpl(ChannelList list , TelegramNotifierAsync tnAsync, MessageReactionHandler handler) {
         this.tnAsync = tnAsync;
         player = new Player();
-        langPrinter = new Translator();
+        translator = new Translator();
         this.chList = list;
         client = new LyricsClient();
+        this.handler = handler;
     }
 
     @Override
@@ -57,18 +59,24 @@ public class CommandsImpl implements Commands {
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
                 ".info: mostra le info di SaaSBot\n" +
-                "-----MODERAZIONE-----\n\n" +
+                "-----MODERAZIONE-----\n" +
                 ".invite: genera un link di invito al server\n" +
                 ".votekick @<username>: espelle un membro dal server\n" +
-                "-----COMANDI MULTIMEDIALI-----\n\n" +
+                ".report @<username> -- <motivo>: segnala un utente all'admin\n"+
+                ".softban @<username> -- <motivo> -- <tempo>: softbanmna un utente per un lasso di tempo\n" +
+                "-----COMANDI MULTIMEDIALI-----\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
                 ".queue: visualizza la coda di riproduzione\n" +
-                ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue' per vedere l'elenco dei brani in coda\n" +
+                ".dequeue <index>: elimina dalla coda il brano presente all'indice <index> della coda. Eseguire prima il comando '.queue'" +
+                " per vedere l'elenco dei brani in coda\n" +
                 ".leave: abbandona il canale vocale\n" +
+                ".seek <time>: effettua il seek del contenuto multimediale in riproduzione\n" +
+                ".lyrics: visualizza il testo del brano in riproduzione\n" +
+                ".lyrics <query>: ricerca il testo di un determinato brano\n" +
                 "-----UTILITY-----\n" +
                 ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
-                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n\n" +
+                ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n" +
                 ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
                 ".removeTelegram <nomeCanale>: rimuove un canale telegram dalla lista\n"+
                 ".translate <testo> -- <linguaSorgente> <linguaTarget>: traduce il testo <text> da <linguaSorgente> a <linguaTarget>\n" +
@@ -76,7 +84,11 @@ public class CommandsImpl implements Commands {
                 ".survey <question> -- YesNo: crea un sondaggio semplice (Yes/No)\n" +
                 ".survey <question> -- custom -- [emotes]: crea un sondaggio personalizzato con risposte personalizzate\n" +
                 ".endSurvey <surveyID>: chiude un sondaggio mostrandone il risultato\n" +
-                ".coinToss: lancia una moneta");
+                ".coinToss: lancia una moneta\n" +
+                ".wiki <query>: effettua una ricerca su it.wikipedia.org\n" +
+                ".roll <nDadi>d<nFacce>: lancia <nDadi> dadi con <nFacce> facce\n" +
+                ".reminder <oggetto> -- <tempoInSecondi>: crea un reminder per l'autore del messaggio\n" +
+                ".joke: invia una freddura nel canale testuale\n");
         help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
@@ -122,7 +134,7 @@ public class CommandsImpl implements Commands {
 
     @Override
     public boolean sendTelegram(GuildMessageReceivedEvent event) throws NotEnoughParametersException {
-        //message: params[0] chatname = params[1]
+        //message: params[0], chatname = params[1]
         try {
             String[] args = event.getMessage().getContentRaw().substring(10).split(" -- ");
             if (args[0].split(" ").length != 0) {
@@ -156,7 +168,7 @@ public class CommandsImpl implements Commands {
 
     //TODO remodulate exception handling
     @Override
-    public void play(GuildMessageReceivedEvent event, @Nullable String Url, boolean hideNotification) throws NullPointerException, NotEnoughParametersException {
+    public void play(GuildMessageReceivedEvent event, @Nullable String Url, boolean hideNotification) throws NullPointerException{
         Member m = event.getMember();
         Guild guild = m.getGuild();
         GuildVoiceState state = m.getVoiceState();
@@ -223,7 +235,7 @@ public class CommandsImpl implements Commands {
     @Override
     public void translator(GuildMessageReceivedEvent event, String[] args) {
         try {
-            String result = new Translator().translate(args);
+            String result = translator.translate(args);
             JSONObject jobj = new JSONObject(result);
             EmbedBuilder traduzione = new EmbedBuilder();
             traduzione.addField("Traduzione:", jobj.getString("translatedText"), false);
@@ -243,7 +255,7 @@ public class CommandsImpl implements Commands {
     }
 
     @Override
-    public void quiz(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
+    public void quiz(GuildMessageReceivedEvent event){
         Member m = event.getMember();
         List<Role> roles = m.getRoles();
         boolean isAuthorized = false;
@@ -279,11 +291,7 @@ public class CommandsImpl implements Commands {
                 }
                 if (error) {
                     System.out.println("Message deleted, aborting Mettaton");
-                    try {
-                        play(event, null, false);
-                    } catch (NotEnoughParametersException e) {
-                        e.printStackTrace();
-                    }
+                    play(event, null, false);
                 }
             });
             modify.start();
@@ -304,7 +312,7 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void languagePrinter(GuildMessageReceivedEvent event) {
-        String lanList = langPrinter.printLanguages();
+        String lanList = translator.printLanguages();
         EmbedBuilder langl = new EmbedBuilder();
         langl.setTitle("Lingue supportate");
         langl.setDescription(lanList);
@@ -312,7 +320,6 @@ public class CommandsImpl implements Commands {
 
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(langl.build()).queue();
-
     }
 
     @Override
@@ -346,20 +353,23 @@ public class CommandsImpl implements Commands {
                             @Override
                             public void run() {
                                 if (System.currentTimeMillis() >= (countdownStart + 30 * 1000)) {   //if 30 seconds passed
-                                    HashMap<String, Integer> cnt = MessageReactionHandler.getReactionsCount(msgID);
+                                    HashMap<String, Integer> cnt = handler.getReactionsCount(msgID);
                                     final Integer tickCount = cnt.get(TICK);
                                     final Integer crossCount = cnt.get(CROSS);
                                     event.getChannel().deleteMessageById(msgID).queue();
                                     if (cnt.get(TICK) > quorum) {
                                         event.getGuild().kick(userID).queue(success->{
-                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
+                                            event.getChannel().sendMessage(msg[1] + "was kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick")
+                                                    .queue();
                                         });
                                     } else {
-                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick").queue();
+                                        event.getChannel().sendMessage(msg[1] + " was not kicked\n" + tickCount + " Voted for kick\n" + crossCount + " Voted not to kick")
+                                                .queue();
                                     }
                                     t.cancel();
                                 } else {
-                                    message.editMessage("@everyone\nVoting to kick " + msg[1] + ": " + (30 - ((System.currentTimeMillis() - countdownStart) / 1000) + "sec remaining")).complete();
+                                    message.editMessage("@everyone\nVoting to kick " + msg[1] + ": " +
+                                            (30 - ((System.currentTimeMillis() - countdownStart) / 1000) + "sec remaining")).complete();
                                 }
                             }
                         }, 0, 1000);
@@ -421,7 +431,7 @@ public class CommandsImpl implements Commands {
                 Message surveyMessage = event.getChannel().retrieveMessageById(ids[0]).complete();
                 String question = surveyMessage.getContentRaw().substring(8).split(" -- ")[0];
                 if(surveyMessage.getAuthor().getId().equals(event.getMessage().getAuthor().getId())) {
-                    HashMap<String,Integer> count = MessageReactionHandler.getReactionsCount(ids[1]);
+                    HashMap<String,Integer> count = handler.getReactionsCount(ids[1]);
                     event.getChannel().retrieveMessageById(ids[1]).queue(message -> {
                         message.delete().queue(success -> {
                             StringBuilder sBuilder = new StringBuilder();
@@ -457,7 +467,6 @@ public class CommandsImpl implements Commands {
                 if (params.length != 2) {
                     throw new NotEnoughParametersException(".addTelegram", "2");
                 } else {
-                    //if (tNotifier.addChannel(event.getGuild().getId(), params)) {
                     if(chList.add(event.getGuild().getId(), params[0], params[1])){
                         event.getMessage().addReaction(TICK).queue();
                     } else {
@@ -514,8 +523,6 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void reportUser(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
-        // .report @<nome> -- <reason>
-        // .report @RockyTeck -- è sempre colpa sua.
         String[] params = event.getMessage().getContentRaw().split(" -- ");
         String[] params1 = params[0].split(" ");
         if (params.length + params1.length - 1 != 3) {
@@ -536,7 +543,8 @@ public class CommandsImpl implements Commands {
                             if (a.isImage()) {
                                 try {
                                     InputStream i = a.retrieveInputStream().get();
-                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                                    privateChannel.sendMessage(event.getMessage().getAuthor().getName()
+                                            + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
                                             .addFile(i, "reportAttachment.jpg", new AttachmentOption[]{})
                                             .queue(success -> {
                                                 event.getMessage().delete().queue();
@@ -549,7 +557,8 @@ public class CommandsImpl implements Commands {
                                 }
                             }
                         }else{
-                            privateChannel.sendMessage(event.getMessage().getAuthor().getName() + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
+                            privateChannel.sendMessage(event.getMessage().getAuthor().getName()
+                                    + " has reported " + params1[1] + " on Guild " + event.getGuild().getName() + " for the reason: " + params[1])
                                 .queue(success ->{
                                     event.getMessage().delete().queue();
                                 },error ->{
@@ -621,11 +630,10 @@ public class CommandsImpl implements Commands {
 
     //TODO remodulate exception handling
     @Override
-    public void wikiResearch(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
+    public void wikiResearch(GuildMessageReceivedEvent event){
         // .wiki <query>
         final String DOMAIN_IT = "it.wikipedia.org";
         String query = event.getMessage().getContentRaw().substring(6);
-        //String[] params = event.getMessage().getContentRaw().split(" -- ");
         Wiki wiki = new Wiki.Builder().withDomain("it.wikipedia.org").build();
         ArrayList<String> results = wiki.search(query,1);
         if(results.size() == 0){
@@ -651,10 +659,8 @@ public class CommandsImpl implements Commands {
     }
  //TODO remodulate exception handling
     @Override
-    public void lyrics(GuildMessageReceivedEvent event) throws NotEnoughParametersException{
+    public void lyrics(GuildMessageReceivedEvent event){
         // .lyrics faded
-        //delting () and [] content
-        String[] sources = new String[]{"A-Z Lyrics","Genius","MusixMatch","LyricsFreak"};
         String song = null;
         EmbedBuilder result = new EmbedBuilder();
         int params = event.getMessage().getContentRaw().split(" ").length;
@@ -711,10 +717,7 @@ public class CommandsImpl implements Commands {
                     @Override
                     public void run() {
                         u.openPrivateChannel().queue(privateChannel -> {
-                            privateChannel.sendMessage("Remember: " + content).queue(
-                                    error -> {
-
-                                    });
+                            privateChannel.sendMessage("Remember: " + content).queue();
                         });
                     }
                 }, Long.parseLong(params[1]) * 1000);
