@@ -56,7 +56,7 @@ public class CommandsImpl implements Commands {
     @Override
     public void help(GuildMessageReceivedEvent event) {
         EmbedBuilder help = new EmbedBuilder();
-        help.setTitle("SaaSBot Help:");
+        help.setTitle("SaaSBot Help (Page 1/2):");
         help.setDescription("prefisso: \'.\'\n" +
                 ".ping: mostra il ping\n" +
                 ".info: mostra le info di SaaSBot\n" +
@@ -65,8 +65,8 @@ public class CommandsImpl implements Commands {
                 ".votekick @<username>: espelle un membro dal server\n" +
                 ".report @<username> -- <motivo>: segnala un utente all'admin\n"+
                 ".softban @<username> -- <motivo> -- <tempo>: softbanmna un utente per un lasso di tempo\n" +
-                ".addRole \"<roleName>\" emote: Aggiunge un ruolo disponibile per la selezione nel messaggio di benvenuto" +
-                ".setInfoChannel \"<channelName>\": Imposta un nuovo canale info dove inviare il messaggio di benvenuto" +
+                ".addRole \"<roleName>\" emote: Aggiunge un ruolo disponibile per la selezione nel messaggio di benvenuto\n" +
+                ".setInfoChannel \"<channelName>\": Imposta un nuovo canale info dove inviare il messaggio di benvenuto\n" +
                 "-----COMANDI MULTIMEDIALI-----\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -76,8 +76,12 @@ public class CommandsImpl implements Commands {
                 ".leave: abbandona il canale vocale\n" +
                 ".seek <time>: effettua il seek del contenuto multimediale in riproduzione\n" +
                 ".lyrics: visualizza il testo del brano in riproduzione\n" +
-                ".lyrics <query>: ricerca il testo di un determinato brano\n" +
-                "-----UTILITY-----\n" +
+                ".lyrics <query>: ricerca il testo di un determinato brano\n");
+        help.setColor(Color.blue);
+        event.getChannel().sendTyping().queue();
+        event.getChannel().sendMessage(help.build()).queue();
+        help.setTitle("SaaSBot Help (Page 2/2):");
+        help.setDescription("-----UTILITY-----\n" +
                 ".telegram <messaggio> -- <nomeChat>: invia un messaggio a una chat di Telegram\n" +
                 ".listGroups: mostra le chat telegram a cui è possibile inoltrare un messaggio\n" +
                 ".addTelegram <nomeCanale> -- <IDCanale>: aggiunge un nuovo canale Telegram alla lista\n"+
@@ -92,10 +96,11 @@ public class CommandsImpl implements Commands {
                 ".roll <nDadi>d<nFacce>: lancia <nDadi> dadi con <nFacce> facce\n" +
                 ".reminder <oggetto> -- <tempoInSecondi>: crea un reminder per l'autore del messaggio\n" +
                 ".joke: invia una freddura nel canale testuale\n");
-        help.setColor(Color.blue);
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
         help.clear();
+
+
     }
 
     @Override
