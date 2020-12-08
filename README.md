@@ -72,6 +72,7 @@ The Telegram bot can handle the following commands:
 * [x] Asynchronous Discord message handling
 * [x] Seeking
 * [x] Dice roll
+* [x] Can add/remove Role with reaction on a message
 
 
 ## Authors

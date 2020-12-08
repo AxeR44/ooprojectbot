@@ -135,6 +135,12 @@ public class Listener extends ListenerAdapter {
                         case "seek":
                             commands.seek(event);
                             break;
+                        case "setInfoChannel":
+                            commands.setInfoChannel(event);
+                            break;
+                        case "addRole":
+                            commands.addRole(event);
+                            break;
                     }
                 }catch(NotEnoughParametersException e){
                     event.getChannel().sendMessage(e.getMessage()).queue();

@@ -9,6 +9,7 @@ import Notifier.TelegramNotifierAsync;
 import PlayerUtils.Player;
 import EventListener.MessageReactionHandler;
 import Wrappers.ChannelList;
+import Wrappers.GuildInfo;
 import Wrappers.SongLength;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -18,6 +19,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.AttachmentOption;
+import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.fastily.jwiki.core.Wiki;
 import org.jetbrains.annotations.Nullable;
 import org.json.*;
@@ -42,7 +44,6 @@ public class CommandsImpl implements Commands {
     private ChannelList chList;
     private final MessageReactionHandler handler;
 
-
     public CommandsImpl(ChannelList list , TelegramNotifierAsync tnAsync, MessageReactionHandler handler) {
         this.tnAsync = tnAsync;
         player = new Player();
@@ -64,6 +65,8 @@ public class CommandsImpl implements Commands {
                 ".votekick @<username>: espelle un membro dal server\n" +
                 ".report @<username> -- <motivo>: segnala un utente all'admin\n"+
                 ".softban @<username> -- <motivo> -- <tempo>: softbanmna un utente per un lasso di tempo\n" +
+                ".addRole \"<roleName>\" emote: Aggiunge un ruolo disponibile per la selezione nel messaggio di benvenuto" +
+                ".setInfoChannel \"<channelName>\": Imposta un nuovo canale info dove inviare il messaggio di benvenuto" +
                 "-----COMANDI MULTIMEDIALI-----\n" +
                 ".play <link>: riproduce una sorgente multimediale presente al link indicato come secondo parametro\n" +
                 ".skip: salta la canzone attualmente in riproduzione\n" +
@@ -777,6 +780,80 @@ public class CommandsImpl implements Commands {
             }catch (NullPointerException e){
                 event.getChannel().sendMessage("Nessun brano in riproduzione").queue();
             }
+        }
+    }
+
+
+    //.setInfoChannel "channelName"
+    @Override
+    public void setInfoChannel(GuildMessageReceivedEvent event) {
+        //Command can only be issued by guild owner
+        if (!event.getAuthor().isBot() && PermissionUtil.checkPermission(event.getMember(), Permission.ADMINISTRATOR)) {
+            String messageContent = event.getMessage().getContentRaw();
+            String args[] = messageContent.split("\"");
+            if (args.length == 2) {
+                event.getChannel().sendMessage("Args accepted").queue();
+                List<TextChannel> channels = event.getGuild().getTextChannelsByName(args[1], false);
+                if(!channels.isEmpty()){
+                    TextChannel channel = channels.get(0);  //get first channel from result
+                    String messageID = channel.sendMessage("Welcome to server " + event.getGuild().getName()).complete().getId();   //Got MessageID
+                    GuildInfo.GuildRoleManagement management = GuildInfo.getGuildRoleManagement(event.getGuild());
+                    if(management != null){
+                        event.getGuild().getTextChannelById(management.getInfoChannelID()).deleteMessageById(management.getInfoMessage()).queue(success->{
+                            management.setInfoChannelID(channel.getId());
+                            management.setInfoMessage(messageID);
+                            //GuildInfo.replaceGuildRoleManagement(event.getGuild().getId(), management);
+                            //updateReactionsListOnMessage
+                            Set<String> emotes = management.getEmotes();
+                            for(String emoteString : emotes){
+                                channel.addReactionById(messageID, emoteString).queue();
+                            }
+                        });
+                    }else{
+                        //Creating new Instance
+                        GuildInfo.addGuildRoleManagement(event.getGuild().getId(), channel.getId(), messageID);
+                    }
+                }else{
+                    event.getChannel().sendMessage("No channel named" + args[1] + " found").queue();
+                }
+            } else {
+                event.getChannel().sendMessage("Args not accepted").queue();
+            }
+        }else{
+            event.getChannel().sendMessage("You are not authorized to issue this command").queue();
+        }
+    }
+
+    @Override
+    public void addRole(GuildMessageReceivedEvent event){
+        if (!event.getAuthor().isBot() && PermissionUtil.checkPermission(event.getMember(), Permission.ADMINISTRATOR)) {
+            String messageContent = event.getMessage().getContentRaw();
+            String args[] = messageContent.split("\"");
+            if (args.length == 3) {
+                List<Role> roles = event.getGuild().getRolesByName(args[1], false);
+                if(!roles.isEmpty()){
+                    Role role = roles.get(0);
+                    String emote = args[2].substring(3, args[2].length()-1);    //Trim <: and > chars
+                    //event.getMessage().addReaction(emote).queue();
+                    GuildInfo.GuildRoleManagement management = GuildInfo.getGuildRoleManagement(event.getGuild());
+                    if(management != null){
+                        if(!management.isEmoteAssociated(emote) && !management.isRoleEnabled(role)){
+                            //Have to enable Role with emote E and update message
+                            management.addRole(role, emote);
+                            //GuildInfo.replaceGuildRoleManagement(event.getGuild().getId(), management);
+                            event.getGuild().getTextChannelById(management.getInfoChannelID()).addReactionById(management.getInfoMessage(), emote).queue(success->{
+                                event.getChannel().sendMessage("Added role " + role.getName()).queue();
+                            });
+                        }else{
+                            event.getChannel().sendMessage("Guild or emote can't be associated").queue();
+                        }
+                    }else{
+                        event.getChannel().sendMessage("Update info channel first").queue();
+                    }
+                }
+            }
+        }else{
+            event.getChannel().sendMessage("You are not authorized to issue this command").queue();
         }
     }
 }

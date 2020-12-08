@@ -1,7 +1,9 @@
 package EventListener;
 
+import Wrappers.GuildInfo;
 import Wrappers.MessageCountWrapper;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -17,11 +19,23 @@ public class MessageReactionHandler extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReactionAdd(MessageReactionAddEvent event){
+    public void onMessageReactionAdd(MessageReactionAddEvent event) {
         String id = event.getMessageId();
         Message msg = event.getChannel().retrieveMessageById(id).complete();
-        if(msg.getContentRaw().startsWith("@everyone\nVoting") && msg.getAuthor().getId().equals(event.getGuild().getSelfMember().getId())){
+        if (msg.getContentRaw().startsWith("@everyone\nVoting") && msg.getAuthor().getId().equals(event.getGuild().getSelfMember().getId())) {
             addReactionToMap(id, event);
+        } else if (msg.getContentRaw().startsWith("Welcome to") && msg.getAuthor().getId().equals(event.getGuild().getSelfMember().getId())) {
+            if (!event.getMember().getId().equals(event.getGuild().getSelfMember().getId())){
+                GuildInfo.GuildRoleManagement management = GuildInfo.getGuildRoleManagement(event.getGuild());
+                Role role = management.getRoleFromEmote(event.getReactionEmote().getAsReactionCode());
+                event.getGuild().addRoleToMember(event.getMember(), GuildInfo.getGuildRoleManagement(event.getGuild()).getRoleFromEmote(event.getReactionEmote().getAsReactionCode())).queue();
+                if(event.getMember().getRoles().contains(role)){
+                    event.getGuild().removeRoleFromMember(event.getMember(), role).queue();
+                }else{
+                    event.getGuild().addRoleToMember(event.getMember(), role).queue();
+                }
+                event.getTextChannel().removeReactionById(management.getInfoMessage(), event.getReactionEmote().getAsReactionCode(), event.getUser()).complete();
+            }
         }
     }
 

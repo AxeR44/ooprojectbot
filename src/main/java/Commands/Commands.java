@@ -31,4 +31,6 @@ public interface Commands {
     void reminder(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void rollDice(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
     void seek(GuildMessageReceivedEvent event) throws NotEnoughParametersException;
+    void setInfoChannel(GuildMessageReceivedEvent event);
+    void addRole(GuildMessageReceivedEvent event);
 }
