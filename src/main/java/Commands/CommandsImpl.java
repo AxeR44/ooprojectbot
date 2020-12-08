@@ -96,7 +96,6 @@ public class CommandsImpl implements Commands {
                 ".roll <nDadi>d<nFacce>: lancia <nDadi> dadi con <nFacce> facce\n" +
                 ".reminder <oggetto> -- <tempoInSecondi>: crea un reminder per l'autore del messaggio\n" +
                 ".joke: invia una freddura nel canale testuale\n");
-        event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(help.build()).queue();
         help.clear();
 
@@ -801,20 +800,27 @@ public class CommandsImpl implements Commands {
                 List<TextChannel> channels = event.getGuild().getTextChannelsByName(args[1], false);
                 if(!channels.isEmpty()){
                     TextChannel channel = channels.get(0);  //get first channel from result
-                    String messageID = channel.sendMessage("Welcome to server " + event.getGuild().getName()).complete().getId();   //Got MessageID
                     GuildInfo.GuildRoleManagement management = GuildInfo.getGuildRoleManagement(event.getGuild());
                     if(management != null){
-                        event.getGuild().getTextChannelById(management.getInfoChannelID()).deleteMessageById(management.getInfoMessage()).queue(success->{
-                            management.setInfoChannelID(channel.getId());
-                            management.setInfoMessage(messageID);
-                            //GuildInfo.replaceGuildRoleManagement(event.getGuild().getId(), management);
-                            //updateReactionsListOnMessage
-                            Set<String> emotes = management.getEmotes();
-                            for(String emoteString : emotes){
-                                channel.addReactionById(messageID, emoteString).queue();
-                            }
+                        event.getGuild().getTextChannelById(management.getInfoChannelID()).retrieveMessageById(management.getInfoMessage()).queue(retrieved->{
+                            String previousMessage = retrieved.getContentRaw();
+                            channel.sendMessage(previousMessage).queue(message->{
+                                String messageID = message.getId();
+                                event.getGuild().getTextChannelById(management.getInfoChannelID()).deleteMessageById(management.getInfoMessage()).queue(success->{
+                                    management.setInfoChannelID(channel.getId());
+                                    management.setInfoMessage(messageID);
+                                    //GuildInfo.replaceGuildRoleManagement(event.getGuild().getId(), management);
+                                    //updateReactionsListOnMessage
+                                    Set<String> emotes = management.getEmotes();
+                                    for(String emoteString : emotes){
+                                        channel.addReactionById(messageID, emoteString).queue();
+                                    }
+                                });
+                            });
                         });
+
                     }else{
+                        String messageID = channel.sendMessage("Welcome to server " + event.getGuild().getName()).complete().getId();   //Got MessageID
                         //Creating new Instance
                         GuildInfo.addGuildRoleManagement(event.getGuild().getId(), channel.getId(), messageID);
                     }
@@ -822,7 +828,7 @@ public class CommandsImpl implements Commands {
                     event.getChannel().sendMessage("No channel named" + args[1] + " found").queue();
                 }
             } else {
-                event.getChannel().sendMessage("Args not accepted").queue();
+                event.getChannel().sendMessage("Invalid Args").queue();
             }
         }else{
             event.getChannel().sendMessage("You are not authorized to issue this command").queue();
@@ -848,6 +854,9 @@ public class CommandsImpl implements Commands {
                             //GuildInfo.replaceGuildRoleManagement(event.getGuild().getId(), management);
                             event.getGuild().getTextChannelById(management.getInfoChannelID()).addReactionById(management.getInfoMessage(), emote).queue(success->{
                                 event.getChannel().sendMessage("Added role " + role.getName()).queue();
+                                event.getGuild().getTextChannelById(management.getInfoChannelID()).retrieveMessageById(management.getInfoMessage()).queue(retrieved->{
+                                    retrieved.editMessage(retrieved.getContentRaw() + "\n" + args[2].substring(1) + ": " + role.getName()).queue();
+                                });
                             });
                         }else{
                             event.getChannel().sendMessage("Guild or emote can't be associated").queue();
