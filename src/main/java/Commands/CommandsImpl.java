@@ -844,7 +844,13 @@ public class CommandsImpl implements Commands {
                 List<Role> roles = event.getGuild().getRolesByName(args[1], false);
                 if(!roles.isEmpty()){
                     Role role = roles.get(0);
-                    String emote = args[2].substring(3, args[2].length()-1);    //Trim <: and > chars
+                    String emote;
+                    System.out.println(args[2] + "  " + args[2].length());
+                    if(args[2].length() > 3){
+                        emote = args[2].substring(3, args[2].length()-1);    //Trim <: and > chars
+                    }else{
+                        emote = args[2].substring(1);
+                    }
                     //event.getMessage().addReaction(emote).queue();
                     GuildInfo.GuildRoleManagement management = GuildInfo.getGuildRoleManagement(event.getGuild());
                     if(management != null){
